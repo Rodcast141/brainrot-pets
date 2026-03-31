@@ -1,17 +1,10 @@
 body {
   margin: 0;
   overflow: hidden;
-  font-family: Arial, sans-serif;
-  background: black; /* prevents white flash */
+  background: black;
 }
 
 a-scene {
   width: 100vw;
   height: 100vh;
-  display: block;
-}
-
-/* Optional: smoother text look */
-a-text {
-  font-family: Arial, sans-serif;
 }
