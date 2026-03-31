@@ -1,11 +1,7 @@
-// =====================
-// PLAYER + ROLE SYSTEM
-// =====================
-
 let playerName = prompt("Enter username") || "player";
 
 const owners = ["owner"];
-const devs = ["dev"];
+const devs = ["dev", "rusty.gamer32"];
 const mods = ["mod"];
 
 function getRole(name) {
@@ -17,140 +13,154 @@ function getRole(name) {
 
 let role = getRole(playerName);
 
-// Wait until scene is loaded
-window.addEventListener("load", () => {
+let coins = 0;
+let pets = [];
+let level = 0;
+let sleepLevel = 0;
+let tutorialStep = 0;
+
+function updateCoins() {
+  document.querySelector("#coinsText")
+    .setAttribute("value", "Coins: " + coins);
+}
+
+function updateLeaderboard() {
+  document.querySelector("#rebirthBoard")
+    .setAttribute("value",
+`Level: ${level}
+Coins Needed: 350k
+Pet Needed: Cameraman`);
+}
+
+function updateTutorial() {
+  let text = document.querySelector("#tutorialText");
+
+  if (tutorialStep === 0) text.setAttribute("value", "💎 Mine crystals");
+  else if (tutorialStep === 1) text.setAttribute("value", "🚪 Go to tunnel");
+  else if (tutorialStep === 2) text.setAttribute("value", "🥚 Hatch egg");
+  else if (tutorialStep === 3) text.setAttribute("value", "🔁 Rebirth");
+  else text.setAttribute("value", "🎉 Done!");
+}
+
+window.onload = () => {
 
   let scene = document.querySelector("a-scene");
 
-  // Spawn player
+  // PLAYER
   let player = document.createElement("a-entity");
+
+  if (role === "dev" || role === "owner" || role === "mod") {
+    player.setAttribute("gltf-model", "#proDog");
+  } else {
+    player.setAttribute("gltf-model", "#normalDog");
+  }
+
   player.setAttribute("position", "0 1 -3");
-
-  // ✅ FIX: Always use working model
-  player.setAttribute("gltf-model", "#dogModel");
-  player.setAttribute("scale", "0.5 0.5 0.5");
-
-  // Accessories
-  let accessory = document.createElement("a-entity");
-
-  if (role === "owner") {
-    accessory.setAttribute("geometry", "primitive: cone");
-    accessory.setAttribute("material", "color: yellow");
-    accessory.setAttribute("position", "0 1.5 0");
-  }
-
-  if (role === "dev") {
-    accessory.setAttribute("geometry", "primitive: torus");
-    accessory.setAttribute("material", "color: white");
-    accessory.setAttribute("position", "0 1 0");
-  }
-
-  if (role === "mod") {
-    accessory.setAttribute("geometry", "primitive: plane");
-    accessory.setAttribute("material", "color: green");
-    accessory.setAttribute("position", "0 1 0.5");
-  }
-
-  player.appendChild(accessory);
   scene.appendChild(player);
 
-  // =====================
-  // COINS SYSTEM
-  // =====================
-
-  let coins = 0;
-
-  function updateCoins() {
-    document.querySelector("#coinsText")
-      .setAttribute("value", "Coins: " + coins);
-  }
-
-  updateCoins();
-
-  // =====================
   // CRYSTALS
-  // =====================
-
-  function spawnCrystal(x, z) {
-    let crystal = document.createElement("a-cone");
-
-    crystal.setAttribute("position", `${x} 1 ${z}`);
-    crystal.setAttribute("color", "cyan");
-
-    crystal.addEventListener("click", () => {
-      coins += 10;
+  document.querySelectorAll(".crystal").forEach(c => {
+    c.addEventListener("click", () => {
+      coins += 5;
       updateCoins();
 
-      let pos = crystal.getAttribute("position");
-      crystal.remove();
-
-      setTimeout(() => {
-        spawnCrystal(pos.x, pos.z);
-      }, 60000);
-    });
-
-    scene.appendChild(crystal);
-  }
-
-  for (let i = 0; i < 5; i++) {
-    spawnCrystal((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20);
-  }
-
-  // =====================
-  // WORLD SYSTEM
-  // =====================
-
-  document.querySelector("#toWorld2").onclick = () => {
-    if (coins >= 50) {
-      document.querySelector("#world1").setAttribute("visible", false);
-      document.querySelector("#world2").setAttribute("visible", true);
-    } else {
-      alert("Need 50 coins!");
-    }
-  };
-
-  document.querySelector("#toWorld1").onclick = () => {
-    document.querySelector("#world1").setAttribute("visible", true);
-    document.querySelector("#world2").setAttribute("visible", false);
-  };
-
-  // =====================
-  // EGG SYSTEM
-  // =====================
-
-  const eggTiers = {
-    1: {
-      cost: 10,
-      rewards: [
-        { name: "Frog", rarity: "Common", tier: 1, chance: 0.7 },
-        { name: "Croc", rarity: "Rare", tier: 1, chance: 0.3 }
-      ]
-    }
-  };
-
-  function openEgg(tier) {
-    let egg = eggTiers[tier];
-
-    if (coins < egg.cost) {
-      alert("Not enough coins!");
-      return;
-    }
-
-    coins -= egg.cost;
-    updateCoins();
-
-    let rand = Math.random();
-    let total = 0;
-
-    for (let reward of egg.rewards) {
-      total += reward.chance;
-      if (rand <= total) {
-        alert(`You got: ${reward.rarity} Tier ${reward.tier} ${reward.name}`);
-        break;
+      if (tutorialStep === 0) {
+        tutorialStep = 1;
+        updateTutorial();
       }
+    });
+  });
+
+  // TUNNEL
+  document.querySelector("#tunnelDoor").onclick = () => {
+    document.querySelector("#world1").setAttribute("visible", false);
+    document.querySelector("#plantWorld").setAttribute("visible", true);
+
+    if (tutorialStep === 1) {
+      tutorialStep = 2;
+      updateTutorial();
     }
+  };
+
+  // PET SPAWN
+  function spawnPet(type) {
+    let pet = document.createElement("a-entity");
+
+    pet.setAttribute("gltf-model", "#adminPet");
+    pet.setAttribute("scale", "0.3 0.3 0.3");
+
+    scene.appendChild(pet);
+
+    setInterval(() => {
+      let pos = document.querySelector("#camera").getAttribute("position");
+
+      pet.setAttribute("position", {
+        x: pos.x,
+        y: 0.5,
+        z: pos.z - 1
+      });
+    }, 200);
   }
 
-  document.querySelector("#eggT1").onclick = () => openEgg(1);
+  // EGGS
+  document.querySelectorAll(".egg").forEach(e => {
+    e.addEventListener("click", () => {
+      e.setAttribute("visible", false);
 
-});
+      pets.push("cameraman");
+      spawnPet();
+
+      if (tutorialStep === 2) {
+        tutorialStep = 3;
+        updateTutorial();
+      }
+    });
+  });
+
+  // BED + BUFF
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "b") {
+      let bed = document.createElement("a-box");
+
+      let pos = document.querySelector("#camera").getAttribute("position");
+
+      bed.setAttribute("position", `${pos.x} 0 ${pos.z - 2}`);
+      bed.setAttribute("color", "brown");
+
+      bed.onclick = () => {
+        sleepLevel++;
+
+        if (sleepLevel === 1) alert("💪 6 PACK");
+        else if (sleepLevel === 2) alert("💪 8 PACK");
+        else alert("💪 10 PACK");
+      };
+
+      scene.appendChild(bed);
+    }
+  });
+
+  // REBIRTH
+  document.querySelector("#rebirthButton").onclick = () => {
+
+    if (coins < 350000) return alert("Need 350k coins");
+    if (!pets.includes("cameraman")) return alert("Need Cameraman");
+
+    level++;
+    coins = 0;
+    pets = [];
+
+    alert("🔥 LEVEL UP");
+
+    updateCoins();
+    updateLeaderboard();
+
+    if (tutorialStep === 3) {
+      tutorialStep = 4;
+      updateTutorial();
+    }
+  };
+
+  updateCoins();
+  updateLeaderboard();
+  updateTutorial();
+};
