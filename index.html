@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Brainrot VR Game</title>
+  <title>Brainrot Pets</title>
 
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 
 <body>
@@ -13,35 +14,51 @@
 
   <!-- ASSETS -->
   <a-assets>
-    <a-asset-item id="specialModel" src="model-1774245879012.glb"></a-asset-item>
+    <!-- Placeholder dog model (replace later with your own) -->
     <a-asset-item id="dogModel" src="https://cdn.aframe.io/test-models/models/glTF/Duck/glTF/Duck.gltf"></a-asset-item>
   </a-assets>
 
-  <!-- PLAYER CAMERA -->
+  <!-- CAMERA -->
   <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
 
-  <!-- WORLDS -->
+  <!-- WORLD 1 -->
   <a-entity id="world1">
-    <a-plane rotation="-90 0 0" width="30" height="30" color="green"></a-plane>
+    <a-plane rotation="-90 0 0" width="30" height="30" color="#4CAF50"></a-plane>
   </a-entity>
 
+  <!-- WORLD 2 -->
   <a-entity id="world2" visible="false">
-    <a-plane rotation="-90 0 0" width="30" height="30" color="red"></a-plane>
+    <a-plane rotation="-90 0 0" width="30" height="30" color="#B22222"></a-plane>
   </a-entity>
 
-  <!-- TELEPORT -->
-  <a-box id="toWorld2" position="3 1 -3" color="blue"></a-box>
-  <a-box id="toWorld1" position="0 1 -3" color="yellow"></a-box>
+  <!-- TELEPORT BUTTONS -->
+  <a-box id="toWorld2" position="3 1 -3" color="#2196F3"></a-box>
+  <a-box id="toWorld1" position="0 1 -3" color="#FFC107"></a-box>
+
+  <!-- DOG PET -->
+  <a-entity id="dog"
+            gltf-model="#dogModel"
+            position="0 1 -5"
+            scale="1 1 1"
+            rotation="0 180 0">
+  </a-entity>
+
+  <!-- BRAINROT TONGUE 👅 -->
+  <a-box 
+    id="tongue"
+    position="0 0.8 -4.7"
+    scale="0.25 0.06 0.45"
+    material="color: #ff4da6; metalness: 0.3; roughness: 0.25;">
+  </a-box>
 
   <!-- UI -->
-  <a-text id="coinsText" value="Coins: 0" position="0 3 -3" color="white"></a-text>
+  <a-text value="Brainrot Pets" position="0 4 -3" align="center" color="white"></a-text>
+  <a-text id="coinsText" value="Coins: 0" position="0 3 -3" align="center" color="white"></a-text>
 
   <!-- EGG -->
   <a-box id="eggT1" position="-2 1 -3" color="white"></a-box>
 
 </a-scene>
-
-<script src="script.js"></script>
 
 </body>
 </html>
