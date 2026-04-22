@@ -1,70 +1,1787 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Brainrot Pets</title>
-
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Rot Pets</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.2/aframe.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --c1:#7c3aed;--c2:#06b6d4;--c3:#f59e0b;--c4:#10b981;--cred:#ef4444;
+  --bg:#0a0010;--panel:rgba(10,0,25,0.93);--border:rgba(124,58,237,0.4);
+  --txt:#e2d9f3;--dim:#8b7aa0;
+}
+body{background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;color:var(--txt)}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;padding:.55rem 1.1rem;border-radius:8px;border:none;cursor:pointer;font-size:.82rem;font-weight:700;letter-spacing:.5px;transition:all .2s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--c1),#4f46e5);color:#fff}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-gem{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff}
+.btn-coin{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}
+.btn-green{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--txt)}
+.btn-ghost:hover{background:rgba(124,58,237,.15)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+/* ── PANEL BASE ── */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(24px);box-shadow:0 0 40px rgba(124,58,237,.15)}
+.panel-title{font-size:1rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:1rem 1.2rem .6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.panel-body{padding:1rem 1.2rem}
+/* ── TUTORIAL / SCREENS ── */
+#tut-screen{position:fixed;inset:0;z-index:9990;background:radial-gradient(ellipse at 30% 40%,#1a0040 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto}
+.game-logo{font-size:clamp(2rem,6vw,3.8rem);font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,#a78bfa,#06b6d4,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;animation:logopulse 3s ease-in-out infinite;margin-bottom:.3rem}
+@keyframes logopulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.game-sub{color:var(--dim);font-size:.85rem;letter-spacing:3px;text-align:center;margin-bottom:2rem}
+.tut-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem;max-width:900px;width:100%;margin-bottom:1.2rem}
+.tcard{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:1rem}
+.tcard h3{color:#a78bfa;margin-bottom:.4rem;font-size:.88rem;display:flex;align-items:center;gap:.4rem}
+.tcard p{color:#b0a0c8;font-size:.77rem;line-height:1.6}
+.tut-note{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.3);border-radius:10px;padding:.9rem 1.2rem;max-width:860px;width:100%;margin-bottom:1rem;font-size:.8rem;color:#67e8f9;line-height:1.7}
+.staff-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:.9rem 1.2rem;max-width:860px;width:100%;margin-bottom:1.5rem;font-size:.8rem;color:#fde68a;line-height:1.8}
+.staff-box h3{color:#f59e0b;margin-bottom:.4rem;font-size:.88rem}
+/* ── HUD ── */
+#hud{position:fixed;top:0;left:0;right:0;padding:.6rem .8rem;display:none;pointer-events:none;z-index:500;display:none}
+.hud-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.hud-left,.hud-right{display:flex;flex-direction:column;gap:.3rem}
+.hstat{background:rgba(0,0,0,.7);border:1px solid rgba(124,58,237,.3);border-radius:7px;padding:.3rem .65rem;font-size:.75rem;backdrop-filter:blur(12px);white-space:nowrap}
+.hstat .v{color:#a78bfa;font-weight:700}
+.hstat .gv{color:#06b6d4;font-weight:700}
+/* ── BOTTOM TOOLBAR ── */
+#toolbar{position:fixed;bottom:.7rem;left:50%;transform:translateX(-50%);display:none;gap:.35rem;z-index:600;flex-wrap:wrap;justify-content:center;max-width:98vw;pointer-events:all}
+.tbtn{background:rgba(10,0,25,.85);border:1px solid rgba(124,58,237,.35);border-radius:9px;padding:.4rem .65rem;color:var(--txt);font-size:.7rem;cursor:pointer;transition:all .18s;white-space:nowrap;pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:.1rem}
+.tbtn:hover,.tbtn:active{background:rgba(124,58,237,.3);border-color:#a78bfa}
+.tbtn .ti{font-size:1.1rem}
+.tbtn.staff-only{border-color:rgba(245,158,11,.4);color:#fde68a}
+/* ── WORLD DOTS ── */
+#wdots-wrap{position:fixed;right:.6rem;top:50%;transform:translateY(-50%);display:none;z-index:400;pointer-events:none}
+.wdot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);margin:3px;cursor:pointer;pointer-events:all;transition:all .2s}
+.wdot.active{background:#a78bfa;box-shadow:0 0 8px #a78bfa}
+/* ── OVERLAYS ── */
+#overlay-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:700;display:none;backdrop-filter:blur(4px)}
+/* ── SHOP ── */
+#shop-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(650px,96vw);max-height:88vh;overflow-y:auto;z-index:800;display:none}
+.shop-tabs{display:flex;gap:.3rem;padding:.8rem 1.2rem .4rem;flex-wrap:wrap}
+.shop-tab{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:7px;padding:.4rem .8rem;font-size:.75rem;color:var(--dim);cursor:pointer;transition:all .2s}
+.shop-tab.active{background:rgba(124,58,237,.25);border-color:#a78bfa;color:#e2d9f3}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem;padding:0 1.2rem 1.2rem}
+.shop-item{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:.9rem;text-align:center;transition:all .2s}
+.shop-item:hover{border-color:#a78bfa;background:rgba(124,58,237,.15)}
+.shop-item .si-icon{font-size:2.2rem;margin-bottom:.4rem;display:block}
+.shop-item .si-name{font-size:.78rem;font-weight:700;color:#e2d9f3;margin-bottom:.2rem}
+.shop-item .si-rarity{font-size:.66rem;font-weight:600;margin-bottom:.5rem}
+.shop-item .si-price{font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:.25rem;margin-bottom:.5rem}
+.r-common{color:#9ca3af}.r-rare{color:#60a5fa}.r-epic{color:#a78bfa}.r-legendary{color:#f59e0b}.r-mythic{color:#f43f5e}.r-og{color:#fb923c}
+/* ── PICKAXES ── */
+.pickaxe-item{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:.9rem;text-align:center;transition:all .2s}
+.pickaxe-item:hover{border-color:#06b6d4;background:rgba(6,182,212,.15)}
+.pickaxe-item.owned{border-color:#10b981;background:rgba(16,185,129,.08)}
+/* ── LEADERBOARD ── */
+#lb-panel{position:fixed;top:50%;right:1rem;transform:translateY(-50%);width:240px;max-height:80vh;overflow-y:auto;z-index:800;display:none}
+.lbe{display:flex;align-items:center;gap:.4rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.78rem}
+.lbe .rk{color:#f59e0b;font-weight:700;width:20px}
+.lbe .ln{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbe .lc{color:#a78bfa}.lbe .lg{color:#06b6d4}
+.rb-btn{width:100%;margin-top:.7rem;padding:.55rem;border-radius:8px;border:1px solid #f59e0b;background:rgba(245,158,11,.1);color:#f59e0b;font-weight:700;cursor:pointer;font-size:.78rem;transition:all .2s}
+.rb-btn:hover{background:rgba(245,158,11,.2)}
+/* ── GT COMPUTER ── */
+#gt-pc{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,96vw);z-index:800;font-family:'Courier New',monospace;display:none}
+.gt-scr{background:#0a140a;border:2px solid #1a3a1a;padding:1rem;margin:1rem;border-radius:4px;min-height:280px}
+.gt-hdr{color:#00ff44;font-size:.7rem;letter-spacing:1px;border-bottom:1px solid #1a3a1a;padding-bottom:.4rem;margin-bottom:.7rem;text-transform:uppercase}
+.gt-tabs{display:flex;border-bottom:1px solid #1a3a1a;margin-bottom:.7rem}
+.gt-tab{background:none;border:none;color:#3a6a3a;font-family:'Courier New',monospace;font-size:.7rem;padding:.35rem .7rem;cursor:pointer;text-transform:uppercase}
+.gt-tab.act{color:#00ff44;border-bottom:2px solid #00ff44}
+.gtc{display:none}.gtc.show{display:block}
+.gt-inp{width:100%;background:#060e06;border:1px solid #1a3a1a;padding:.4rem .6rem;color:#00ff44;font-family:'Courier New',monospace;font-size:.78rem;outline:none;margin-bottom:.45rem;border-radius:3px}
+.gt-inp:focus{border-color:#00ff44}
+.gt-btn{width:100%;padding:.45rem;margin-bottom:.35rem;border:1px solid #1a3a1a;background:rgba(0,255,68,.06);color:#00cc33;font-family:'Courier New',monospace;cursor:pointer;font-size:.72rem;text-transform:uppercase;transition:all .18s;border-radius:3px}
+.gt-btn:hover{background:rgba(0,255,68,.15);color:#00ff44}
+.gt-lbl{color:#3a6a3a;font-size:.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:.25rem}
+.gt-rp{color:#00ff44;font-size:.75rem;min-height:.9rem;margin-bottom:.45rem}
+.gt-list{max-height:140px;overflow-y:auto;margin-bottom:.4rem}
+.gt-item{padding:.3rem .35rem;cursor:pointer;font-size:.7rem;display:flex;justify-content:space-between;border-radius:2px;transition:background .15s}
+.gt-item:hover{background:rgba(0,255,68,.08)}
+.gi-n{color:#aaffaa}.gi-i{color:#3a6a3a;font-size:.65rem}
+.gt-close-bar{background:#0a140a;border-bottom:1px solid #1a3a1a;padding:.45rem .9rem;display:flex;justify-content:space-between;align-items:center}
+.gt-close-bar span{color:#00ff44;font-size:.72rem;letter-spacing:2px;text-transform:uppercase}
+.gt-x{background:none;border:1px solid #1a3a1a;color:#3a6a3a;font-family:'Courier New',monospace;font-size:.65rem;padding:.3rem .6rem;cursor:pointer;border-radius:2px}
+.gt-x:hover{border-color:#00ff44;color:#00ff44}
+/* ── MOD MENU ── */
+#mod-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(300px,94vw);z-index:810;display:none}
+.mb{width:100%;padding:.5rem;margin-bottom:.35rem;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#fca5a5;cursor:pointer;font-size:.82rem;transition:all .18s;text-align:left;padding-left:.9rem}
+.mb:hover{background:rgba(239,68,68,.18)}
+.mb.gold{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07);color:#fde68a}
+.mb.gold:hover{background:rgba(245,158,11,.18)}
+.mb.grn{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.07);color:#6ee7b7}
+.mb.grn:hover{background:rgba(16,185,129,.18)}
+#mod-panel input{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:.4rem .65rem;color:#fff;font-size:.8rem;outline:none;margin-bottom:.4rem}
+/* ── TRADE ── */
+#trade-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(540px,96vw);z-index:800;display:none}
+.trade-sides{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.8rem}
+.trade-side{background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:.9rem;min-height:120px}
+.trade-side h4{color:#a78bfa;font-size:.8rem;margin-bottom:.5rem}
+.trade-slot{width:56px;height:56px;border:2px dashed rgba(124,58,237,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all .2s;margin-bottom:.4rem}
+.trade-slot:hover{border-color:#a78bfa;background:rgba(124,58,237,.1)}
+.trade-slot.filled{border-style:solid;border-color:#a78bfa}
+/* ── QUESTS ── */
+#quest-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(500px,96vw);max-height:85vh;overflow-y:auto;z-index:800;display:none}
+.qitem{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:.85rem;margin-bottom:.6rem}
+.qitem .qt{font-size:.85rem;font-weight:700;color:#6ee7b7;margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+.qitem .qd{font-size:.75rem;color:var(--dim);margin-bottom:.5rem}
+.qprog{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:.4rem}
+.qprog-fill{height:100%;background:linear-gradient(90deg,#10b981,#06b6d4);border-radius:3px;transition:width .4s}
+.qrew{font-size:.72rem;color:#f59e0b;font-weight:600}
+/* ── DAILY ── */
+#daily-btn{position:fixed;top:.6rem;left:50%;transform:translateX(-50%);z-index:510;display:none;pointer-events:all}
+.daily-collect{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:.72rem;font-weight:800;padding:.4rem .9rem;border-radius:20px;border:none;cursor:pointer;animation:dailypulse 2s ease-in-out infinite;white-space:nowrap}
+@keyframes dailypulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+/* ── HATCH ── */
+#hatch-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(320px,90vw);z-index:820;text-align:center;display:none}
+.hatchegg{font-size:5.5rem;display:block;margin:1rem auto;animation:efloat 1.4s ease-in-out infinite}
+@keyframes efloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-18px) rotate(4deg)}}
+@keyframes ehatch{0%{transform:scale(1)}25%{transform:scale(1.25) rotate(-12deg)}50%{transform:scale(.85) rotate(12deg)}75%{transform:scale(1.35)}100%{transform:scale(0);filter:brightness(8)}}
+.hpname{color:#c084fc;font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+.hpdesc{color:var(--dim);font-size:.78rem;margin-bottom:.9rem}
+/* ── PET STAND ── */
+#stand-ui{position:fixed;bottom:5rem;left:.8rem;z-index:600;display:none;pointer-events:all}
+.pslot{width:58px;height:58px;border-radius:9px;border:2px dashed rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;font-size:1.8rem;cursor:pointer;transition:all .2s;margin-bottom:.4rem}
+.pslot:hover,.pslot.occ{border-color:#f59e0b;background:rgba(245,158,11,.08)}
+.pslot.occ{border-style:solid}
+/* ── CONVEYOR ── */
+#conv-ui{position:fixed;bottom:5rem;right:.8rem;z-index:600;display:none;pointer-events:none;width:186px}
+.conv-track{position:relative;height:44px;background:rgba(0,0,0,.4);border:1px solid rgba(16,185,129,.3);border-radius:5px;overflow:hidden;margin-bottom:.35rem}
+/* ── NOTIFS ── */
+#notifs{position:fixed;top:.8rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:.35rem;z-index:9999;pointer-events:none;width:300px}
+.notif{background:rgba(10,0,25,.92);border-radius:8px;padding:.5rem .85rem;color:#e2d9f3;font-size:.78rem;text-align:center;backdrop-filter:blur(16px);border-left:3px solid #a78bfa;animation:nfin .25s ease}
+@keyframes nfin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+/* ── REBIRTH FLASH ── */
+#rb-flash{position:fixed;inset:0;background:radial-gradient(ellipse,#f59e0b 0%,transparent 70%);pointer-events:none;z-index:9998;opacity:0;transition:opacity .15s}
+/* ── XHAIR ── */
+#xhair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;pointer-events:none;z-index:300;display:none}
+#xhair::before,#xhair::after{content:'';position:absolute;background:rgba(255,255,255,.6)}
+#xhair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+#xhair::after{width:100%;height:2px;top:50%;transform:translateY(-50%)}
+/* ── CRYSTAL HP BAR ── */
+.crystal-hp-wrap{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);display:none;pointer-events:none;z-index:500;text-align:center}
+.crystal-hp-bar{width:160px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;display:inline-block}
+.crystal-hp-fill{height:100%;background:linear-gradient(90deg,#ef4444,#f97316);border-radius:4px;transition:width .2s}
+.crystal-hp-txt{color:#fca5a5;font-size:.7rem;margin-top:.2rem}
+/* ── BED ── */
+#sleep-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(340px,90vw);z-index:820;display:none;text-align:center}
+.zzz{font-size:3rem;animation:zzzsway 1.5s ease-in-out infinite}
+@keyframes zzzsway{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:2px}
+</style>
 </head>
-
 <body>
+<div id="rb-flash"></div>
+<div id="notifs"></div>
+<div id="xhair"></div>
+<div id="overlay-bg" onclick="closeAllPanels()"></div>
 
-<a-scene>
+<!-- DAILY GEM BUTTON -->
+<div id="daily-btn">
+  <button class="daily-collect" onclick="claimDaily()" id="daily-collect-btn">&#x1F48E; COLLECT DAILY GEMS (+25)</button>
+</div>
 
-  <!-- ASSETS -->
-  <a-assets>
-    <a-asset-item id="normalDog" src="normalDog.glb"></a-asset-item>
-    <a-asset-item id="proDog" src="dog.glb"></a-asset-item>
-    <a-asset-item id="adminPet" src="adminPet.glb"></a-asset-item>
-  </a-assets>
+<!-- CRYSTAL HP -->
+<div class="crystal-hp-wrap" id="crystal-hp-wrap">
+  <div class="crystal-hp-bar"><div class="crystal-hp-fill" id="crystal-hp-fill" style="width:100%"></div></div>
+  <div class="crystal-hp-txt" id="crystal-hp-txt">Crystal HP: 100/100</div>
+</div>
 
-  <!-- CAMERA -->
-  <a-entity id="camera" camera look-controls position="0 1.6 0"></a-entity>
+<!-- ===== TUTORIAL SCREEN ===== -->
+<div id="tut-screen">
+  <div class="game-logo">&#x1F9E0; BRAIN ROT PETS</div>
+  <div class="game-sub">A VR PET MINING ADVENTURE</div>
+  <div class="tut-cards">
+    <div class="tcard"><h3>&#x26CF; Mining</h3><p>Mine crystals with your pickaxe — each crystal has health. Better pickaxes deal more damage and mine faster!</p></div>
+    <div class="tcard"><h3>&#x1F680; Cannon</h3><p>Step into the cannon to be launched directly to the destination world! Pick your world first then fire.</p></div>
+    <div class="tcard"><h3>&#x1F300; World Tunnel</h3><p>The tunnel is right next to each world entrance. Walk in to teleport instantly between all worlds.</p></div>
+    <div class="tcard"><h3>&#x1F95A; Eggs &amp; Pets</h3><p>Catch eggs on the conveyor before they fall in the hole! Hatch Italian Brainrot pets to earn passive coins.</p></div>
+    <div class="tcard"><h3>&#x1F48E; Gems &amp; Shop</h3><p>Earn 25 FREE gems daily just by logging in. Complete quests for +5 gems each. Spend gems in the shop!</p></div>
+    <div class="tcard"><h3>&#x1F98D; Gorilla Tag Move</h3><p>In VR: swing BOTH controllers DOWN to lunge forward like Gorilla Tag!</p></div>
+  </div>
+  <div class="tut-note">&#x1F4BB; <b>COMPUTER TERMINAL:</b> Walk up to the green glowing computer in Hub World. Change your username there — staff roles are remembered even after name changes. Use it to join private lobbies by code too!</div>
+  <div class="staff-box">
+    <h3>&#x1F451; Game Staff</h3>
+    Owners &#x1F451;: Rusty.gamer32 &#x2022; drelly &#x2022; lars vr &nbsp;|&nbsp; Mods &#x1F6E1;: Lucasinopunchunchini &#x2022; mattsamp<br>
+    <span style="color:#a0916a">Owners &amp; Devs get unlimited gems &amp; coins, all pickaxes, all pets, mod menu with fly + pet spawn. Mods get unlimited quests + mod menu. Regular players get 10 quests max.</span>
+  </div>
+  <div style="text-align:center;margin-bottom:1.2rem">
+    <div style="color:#a78bfa;font-size:.82rem;margin-bottom:.6rem">Set your username to get started:</div>
+    <input id="tut-un-in" type="text" maxlength="24" placeholder="Enter username..." autocomplete="off"
+      style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.4);border-radius:8px;padding:.6rem 1rem;color:#e2d9f3;font-size:.9rem;outline:none;width:260px;margin-bottom:.6rem;display:block;margin-left:auto;margin-right:auto">
+    <div id="tut-role-prev" style="font-size:.78rem;min-height:.9rem;margin-bottom:.8rem;color:#888"></div>
+    <button class="btn btn-primary" style="font-size:.88rem;padding:.65rem 2rem" onclick="startGame()">&#x1F680; PLAY BRAIN ROT PETS!</button>
+  </div>
+</div>
 
-  <!-- 🌍 WORLD 1 -->
-  <a-entity id="world1">
+<!-- ===== HUD ===== -->
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="hstat">&#x1F4B0; <span class="v" id="hd-coins">0</span></div>
+      <div class="hstat">&#x1F48E; <span class="gv" id="hd-gems">0</span></div>
+      <div class="hstat">&#x1F504; x<span class="v" id="hd-mult">1</span></div>
+    </div>
+    <div class="hud-right">
+      <div class="hstat">&#x1F464; <span class="v" id="hd-name">Player</span></div>
+      <div class="hstat">&#x1F30D; <span class="v" id="hd-world">Hub</span></div>
+      <div class="hstat"><span class="v" id="hd-time">--:--</span></div>
+    </div>
+  </div>
+</div>
+<div id="wdots-wrap"><div id="wdots" style="display:flex;flex-direction:column"></div></div>
 
-    <a-plane rotation="-90 0 0" width="30" height="30" color="green"></a-plane>
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <div class="tbtn" onclick="toggleShop()"><span class="ti">&#x1F6D2;</span>Shop</div>
+  <div class="tbtn" onclick="toggleLB()"><span class="ti">&#x1F3C6;</span>Ranks</div>
+  <div class="tbtn" onclick="openPC()"><span class="ti">&#x1F4BB;</span>PC</div>
+  <div class="tbtn" onclick="toggleQuests()"><span class="ti">&#x1F4CB;</span>Quests</div>
+  <div class="tbtn" onclick="toggleStand()"><span class="ti">&#x1F43E;</span>Pets</div>
+  <div class="tbtn" onclick="toggleTrade()"><span class="ti">&#x1F91D;</span>Trade</div>
+  <div class="tbtn" onclick="fireCannon()"><span class="ti">&#x1F680;</span>Cannon</div>
+  <div class="tbtn" onclick="goHub()"><span class="ti">&#x1F3E0;</span>Hub</div>
+  <div class="tbtn" onclick="enterTunnel()"><span class="ti">&#x1F300;</span>Tunnel</div>
+  <div class="tbtn" onclick="switchW(-1)"><span class="ti">&#x25C0;</span></div>
+  <div class="tbtn" onclick="switchW(1)"><span class="ti">&#x25B6;</span></div>
+  <div class="tbtn staff-only" id="tb-mod" style="display:none" onclick="toggleMod()"><span class="ti">&#x2694;</span>Mod</div>
+</div>
 
-    <!-- WALLS -->
-    <a-box position="0 2 -15" width="30" height="4" depth="1" color="#444"></a-box>
-    <a-box position="0 2 15" width="30" height="4" depth="1" color="#444"></a-box>
-    <a-box position="-15 2 0" width="1" height="4" depth="30" color="#444"></a-box>
-    <a-box position="15 2 0" width="1" height="4" depth="30" color="#444"></a-box>
+<!-- ===== LEADERBOARD ===== -->
+<div id="lb-panel" class="panel">
+  <div class="panel-title">&#x1F3C6; Leaderboard</div>
+  <div class="panel-body">
+    <div id="lb-rows"></div>
+    <button class="rb-btn" onclick="doRebirth()">&#x1F504; REBIRTH (10,000 coins)</button>
+    <div style="color:var(--dim);font-size:.68rem;text-align:center;margin-top:.4rem" id="rb-info">Doubles your coin multiplier!</div>
+  </div>
+</div>
 
-    <!-- CRYSTALS -->
-    <a-cone class="crystal" position="2 1 -5" color="#00ffff"></a-cone>
-    <a-cone class="crystal" position="-3 1 -6" color="#00ffff"></a-cone>
-    <a-cone class="crystal" position="4 1 -7" color="#00ffff"></a-cone>
+<!-- ===== GT COMPUTER ===== -->
+<div id="gt-pc" class="panel" style="overflow:hidden">
+  <div class="gt-close-bar">
+    <span>&#x1F4BB; BRAIN ROT TERMINAL v3.0</span>
+    <button class="gt-x" onclick="closePC()">X CLOSE</button>
+  </div>
+  <div class="gt-scr">
+    <div class="gt-hdr">SYSTEM ONLINE &#x25A0; USER: <span id="gt-uname">---</span></div>
+    <div class="gt-tabs">
+      <button class="gt-tab act" onclick="gtTab('lobbies',this)">LOBBIES</button>
+      <button class="gt-tab" onclick="gtTab('username',this)">USERNAME</button>
+      <button class="gt-tab" onclick="gtTab('players',this)">PLAYERS</button>
+    </div>
+    <div class="gtc show" id="gtc-lobbies">
+      <div class="gt-lbl">PUBLIC LOBBIES</div>
+      <div class="gt-list" id="gt-pub-list"></div>
+      <button class="gt-btn" onclick="gtCreateLobby(false)">&#x25BA; CREATE PUBLIC LOBBY</button>
+      <hr style="border:none;border-top:1px solid #1a3a1a;margin:.4rem 0">
+      <div class="gt-lbl">JOIN BY CODE</div>
+      <input class="gt-inp" id="gt-code-in" type="text" placeholder="Lobby code..." maxlength="8" style="text-transform:uppercase">
+      <button class="gt-btn" onclick="gtJoinPrivate()">&#x25BA; JOIN PRIVATE</button>
+      <button class="gt-btn" onclick="gtCreateLobby(true)">&#x25BA; CREATE PRIVATE</button>
+    </div>
+    <div class="gtc" id="gtc-username">
+      <div class="gt-lbl">CURRENT USERNAME</div>
+      <div class="gt-rp" id="gt-cur-name">---</div>
+      <div class="gt-lbl">NEW USERNAME</div>
+      <input class="gt-inp" id="gt-new-un" type="text" placeholder="New username..." maxlength="24">
+      <div class="gt-rp" id="gt-role-rp"></div>
+      <button class="gt-btn" onclick="gtChangeUsername()">&#x25BA; CHANGE USERNAME</button>
+      <hr style="border:none;border-top:1px solid #1a3a1a;margin:.4rem 0">
+      <div class="gt-lbl">RECENT NAMES</div>
+      <div class="gt-list" id="gt-recent"></div>
+    </div>
+    <div class="gtc" id="gtc-players">
+      <div class="gt-lbl">ONLINE (<span id="gt-pcount">0</span>)</div>
+      <div class="gt-list" id="gt-plist"></div>
+    </div>
+  </div>
+</div>
 
-    <!-- TUNNEL -->
-    <a-ring id="tunnelDoor" position="0 2 -10" radius-inner="1.5" radius-outer="2.5"
-            color="#888"></a-ring>
+<!-- ===== SHOP ===== -->
+<div id="shop-panel" class="panel">
+  <div class="panel-title">&#x1F6D2; Shop <span style="font-size:.7rem;color:var(--dim);font-weight:400;margin-left:auto">Gems: <span id="shop-gems" style="color:#06b6d4;font-weight:700">0</span> &nbsp; Coins: <span id="shop-coins" style="color:#a78bfa;font-weight:700">0</span></span></div>
+  <div class="shop-tabs">
+    <div class="shop-tab active" onclick="shopTab('pets',this)">&#x1F43E; Pets</div>
+    <div class="shop-tab" onclick="shopTab('eggs',this)">&#x1F95A; Eggs</div>
+    <div class="shop-tab" onclick="shopTab('pickaxes',this)">&#x26CF; Pickaxes</div>
+    <div class="shop-tab" onclick="shopTab('cosmetics',this)">&#x1F457; Cosmetics</div>
+    <div class="shop-tab" onclick="shopTab('bundles',this)">&#x1F4E6; Bundles</div>
+    <div class="shop-tab" onclick="shopTab('potions',this)">&#x2697; Potions</div>
+  </div>
+  <div id="shop-content" class="shop-grid"></div>
+  <div style="padding:.5rem 1.2rem;text-align:right">
+    <button class="btn btn-ghost" style="font-size:.75rem" onclick="closeShop()">Close</button>
+  </div>
+</div>
 
+<!-- ===== MOD MENU ===== -->
+<div id="mod-panel" class="panel">
+  <div class="panel-title">&#x2694; Staff Menu</div>
+  <div class="panel-body" style="padding-top:.6rem">
+    <input type="text" id="mod-target" placeholder="Target username..." style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:.4rem .65rem;color:#fff;font-size:.8rem;outline:none;margin-bottom:.5rem">
+    <button class="mb" onclick="modAct('kick')">&#x1F6AB; Kick Player</button>
+    <button class="mb" onclick="modAct('ban')">&#x1F528; Ban Player</button>
+    <button class="mb" onclick="modAct('mute')">&#x1F507; Mute Player</button>
+    <button class="mb gold" onclick="modAct('tp')">&#x1F4CD; Teleport To Player</button>
+    <button class="mb gold" onclick="toggleFly()">&#x1F6EB; Toggle Fly Mode</button>
+    <button class="mb gold" id="mod-spawn-pet-btn" onclick="openModSpawnPet()">&#x1F43E; Spawn Any Pet</button>
+    <button class="mb gold" id="mod-coins-btn" onclick="modAct('coins')" style="display:none">&#x1F4B0; Give 999,999 Coins</button>
+    <button class="mb gold" id="mod-gems-btn" onclick="modAct('gems')" style="display:none">&#x1F48E; Give 9,999 Gems</button>
+    <button class="mb grn" onclick="modAct('announce')">&#x1F4E2; Server Announce</button>
+    <input type="text" id="ann-text" placeholder="Announcement..." style="display:none;width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(16,185,129,.3);border-radius:6px;padding:.4rem .65rem;color:#fff;font-size:.8rem;outline:none;margin-bottom:.4rem">
+    <button class="mb" onclick="document.getElementById('mod-panel').style.display='none';document.getElementById('overlay-bg').style.display='none'">Close</button>
+  </div>
+</div>
+
+<!-- ===== TRADE PANEL ===== -->
+<div id="trade-panel" class="panel">
+  <div class="panel-title">&#x1F91D; Trade Pets</div>
+  <div class="panel-body">
+    <div class="trade-sides">
+      <div class="trade-side">
+        <h4>Your Offer</h4>
+        <div class="trade-slot" id="trade-slot-you" onclick="pickTradePet('you')">+</div>
+        <div id="trade-you-name" style="font-size:.72rem;color:var(--dim)">Empty</div>
+      </div>
+      <div class="trade-side">
+        <h4>Their Offer</h4>
+        <div class="trade-slot" id="trade-slot-them">&#x2753;</div>
+        <div style="font-size:.72rem;color:var(--dim)">Waiting...</div>
+      </div>
+    </div>
+    <input type="text" id="trade-partner" placeholder="Partner username..." style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:7px;padding:.5rem .8rem;color:#fff;font-size:.82rem;outline:none;margin-bottom:.6rem">
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-green" style="flex:1" onclick="acceptTrade()">&#x2705; Accept Trade</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeTrade()">Cancel</button>
+    </div>
+    <div id="trade-msg" style="font-size:.75rem;color:#f59e0b;margin-top:.5rem;min-height:.9rem;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ===== QUESTS ===== -->
+<div id="quest-panel" class="panel">
+  <div class="panel-title">&#x1F4CB; Daily Quests <span id="quest-count-badge" style="font-size:.7rem;color:var(--dim);margin-left:auto;font-weight:400">0/10 used</span></div>
+  <div class="panel-body" id="quest-list"></div>
+  <div style="padding:.5rem 1.2rem;text-align:right">
+    <button class="btn btn-ghost" style="font-size:.75rem" onclick="closeQuests()">Close</button>
+  </div>
+</div>
+
+<!-- ===== HATCH MODAL ===== -->
+<div id="hatch-modal" class="panel" style="text-align:center;padding:1.5rem">
+  <h2 style="color:#c084fc;letter-spacing:2px;font-size:1.1rem;margin-bottom:.3rem">&#x1F95A; EGG HATCHING!</h2>
+  <span class="hatchegg" id="hegg">&#x1F95A;</span>
+  <div class="hpname" id="hpname">???</div>
+  <div class="hpdesc" id="hpdesc">A mysterious creature awaits...</div>
+  <button class="btn btn-primary" style="margin-top:.5rem" onclick="confirmHatch()">HATCH IT! &#x2728;</button>
+</div>
+
+<!-- ===== PET STAND ===== -->
+<div id="stand-ui" class="panel" style="padding:1rem">
+  <div style="color:#f59e0b;font-size:.8rem;font-weight:700;margin-bottom:.5rem">&#x1F43E; Pet Stand</div>
+  <div id="pet-slots"></div>
+  <div style="color:#fde68a;font-size:.7rem;text-align:center" id="prate">+0 coins/sec</div>
+</div>
+
+<!-- ===== CONVEYOR ===== -->
+<div id="conv-ui" class="panel" style="padding:.8rem">
+  <div style="color:#10b981;font-size:.78rem;font-weight:700;margin-bottom:.4rem">&#x1F3ED; Conveyor Belt</div>
+  <div class="conv-track" id="conv-track">
+    <div id="conv-box" style="position:absolute;top:50%;transform:translateY(-50%);left:-50px;width:36px;height:36px;border:2px solid #10b981;border-radius:4px;background:rgba(16,185,129,.08);display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:none" onclick="catchEgg()">&#x1F4E6;</div>
+  </div>
+  <div style="color:#10b981;font-size:.68rem;text-align:center;margin-bottom:.2rem">&#x1F573; Catch eggs!</div>
+  <div style="color:#ef4444;font-size:.75rem;text-align:center;font-weight:700" id="conv-timer">Next egg: 8s</div>
+</div>
+
+<!-- ===== SLEEP MODAL ===== -->
+<div id="sleep-modal" class="panel" style="padding:1.5rem;text-align:center">
+  <div class="zzz">&#x1F6CF;</div>
+  <h3 style="color:#a78bfa;margin-bottom:.5rem">Take a nap?</h3>
+  <p style="color:var(--dim);font-size:.8rem;margin-bottom:1rem">This is the Owner/Dev dog bed. Only staff members can use it.</p>
+  <div style="display:flex;gap:.5rem;justify-content:center">
+    <button class="btn btn-primary" onclick="doSleep()">&#x1F634; Sleep</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('sleep-modal').style.display='none';document.getElementById('overlay-bg').style.display='none'">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== MOD PET SPAWN ===== -->
+<div id="mod-spawn-panel" class="panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(380px,94vw);max-height:80vh;overflow-y:auto;z-index:830;display:none">
+  <div class="panel-title">&#x1F43E; Spawn Any Pet</div>
+  <div class="panel-body" id="mod-spawn-list"></div>
+  <div style="padding:.5rem 1.2rem"><button class="btn btn-ghost" style="width:100%;font-size:.75rem" onclick="document.getElementById('mod-spawn-panel').style.display='none'">Close</button></div>
+</div>
+
+<!-- ===== A-FRAME SCENE ===== -->
+<a-scene id="vr-scene" style="display:none"
+  vr-mode-ui="enabled:true"
+  embedded
+  fog="type:exponential;color:#0a0010;density:0.014"
+  loading-screen="enabled:false"
+  renderer="antialias:true">
+
+  <a-assets timeout="8000"></a-assets>
+
+  <a-sky id="dsky" color="#0a0010"></a-sky>
+  <a-entity id="sun-dir" light="type:directional;color:#fffaee;intensity:1.1;castShadow:false" position="10 20 -10"></a-entity>
+  <a-entity light="type:ambient;color:#1a1030;intensity:0.6"></a-entity>
+  <a-sphere id="sun-ball" position="50 40 -100" radius="8" material="shader:flat;color:#ffffaa" visible="true"></a-sphere>
+  <a-sphere id="moon-ball" position="-50 40 -100" radius="5" material="shader:flat;color:#ccccff" visible="false"></a-sphere>
+  <a-entity id="stars-wrap" visible="false"></a-entity>
+
+  <!-- CAMERA RIG -->
+  <a-entity id="rig" position="0 0 0" gorilla-loco>
+    <a-camera id="cam" wasd-controls="acceleration:24" look-controls="pointerLockEnabled:true" position="0 1.6 0" id="cam-ent">
+      <a-entity id="lhand" laser-controls="hand:left" raycaster="objects:.mine,.portal;far:9" line="color:#a78bfa;opacity:0.4"></a-entity>
+      <a-entity id="rhand" laser-controls="hand:right" raycaster="objects:.mine,.portal;far:9" line="color:#06b6d4;opacity:0.4"></a-entity>
+    </a-camera>
   </a-entity>
 
-  <!-- 🌱 PLANT WORLD -->
-  <a-entity id="plantWorld" visible="false">
-    <a-plane rotation="-90 0 0" width="30" height="30" color="#2ecc71"></a-plane>
-
-    <a-sphere class="egg" position="0 1 -4" radius="0.5" color="white"></a-sphere>
-    <a-sphere class="egg" position="2 1 -6" radius="0.5" color="white"></a-sphere>
+  <!-- HUB WORLD -->
+  <a-entity id="world-hub" visible="true">
+    <a-plane rotation="-90 0 0" width="250" height="250" material="color:#0d0020;roughness:1"></a-plane>
+    <a-cylinder position="0 0.08 0" radius="28" height="0.5" material="color:#1a0035;metalness:0.3;roughness:0.6"></a-cylinder>
+    <a-torus position="0 0.35 0" radius="18" tube="0.22" rotation="90 0 0" material="color:#7c3aed;emissive:#3b0764;emissiveIntensity:0.8"></a-torus>
+    <a-torus position="0 0.35 0" radius="25" tube="0.16" rotation="90 0 0" material="color:#06b6d4;emissive:#0c4a6e;emissiveIntensity:0.6"></a-torus>
+    <!-- WORLD TUNNEL ENTRANCE (right next to worlds) -->
+    <a-entity id="tunnel-gate" position="0 0 -10">
+      <a-torus position="0 4 0" radius="3.8" tube="0.45" material="color:#7c3aed;emissive:#4c1d95;emissiveIntensity:1" animation="property:rotation;to:0 360 0;loop:true;dur:6500;easing:linear"></a-torus>
+      <a-circle class="portal" position="0 4 0.18" radius="3.4" material="color:#0d0020;emissive:#1e0040;emissiveIntensity:1.5;opacity:0.92;transparent:true" onclick="enterTunnel()"></a-circle>
+      <a-text value="WORLD TUNNEL" position="0 8.6 0" align="center" color="#a78bfa" width="4"></a-text>
+      <a-entity light="type:point;color:#7c3aed;intensity:1.8;distance:9" position="0 4 1"></a-entity>
+    </a-entity>
+    <!-- CANNON -->
+    <a-entity position="14 0 0">
+      <a-cylinder position="0 0.9 0" radius="1.15" height="1.8" material="color:#374151;metalness:0.9;roughness:0.1"></a-cylinder>
+      <a-cylinder position="0 3 -2" radius="0.6" height="5" rotation="72 0 0" material="color:#1f2937;metalness:0.95;roughness:0.08"></a-cylinder>
+      <a-entity light="type:point;color:#f97316;intensity:2;distance:7" position="0 5 -3"></a-entity>
+      <a-text value="CANNON&#10;Step in + Click!" position="0 6 1" align="center" color="#f97316" width="4"></a-text>
+      <a-box class="portal" position="0 2.5 -0.5" width="3.5" height="6" depth="5" material="opacity:0;transparent:true" onclick="openCannonMenu()"></a-box>
+    </a-entity>
+    <!-- GT COMPUTER -->
+    <a-entity position="-10 0 -5">
+      <a-box position="0 0.7 0" width="1.9" height="1.5" depth="1" material="color:#111827;roughness:0.8"></a-box>
+      <a-box position="0 1.75 -0.3" width="1.55" height="1" depth="0.07" material="color:#0a160a;emissive:#002200;emissiveIntensity:1"></a-box>
+      <a-entity light="type:point;color:#00ff44;intensity:0.8;distance:4" position="0 2 0.3"></a-entity>
+      <a-text value="TERMINAL v3.0&#10;[Click to Use]" position="0 1.75 -0.22" align="center" color="#00ff44" width="2.4"></a-text>
+      <a-box class="portal" position="0 1.4 0" width="2.5" height="3.5" depth="1.5" material="opacity:0;transparent:true" onclick="openPC()"></a-box>
+      <a-text value="COMPUTER" position="0 3.5 0" align="center" color="#00ff44" width="3"></a-text>
+    </a-entity>
+    <!-- LEADERBOARD -->
+    <a-entity position="10 0 -5">
+      <a-cylinder position="0 0.5 0" radius="0.14" height="1" material="color:#78350f;roughness:0.8"></a-cylinder>
+      <a-box position="0 1.5 0" width="2.4" height="1.9" depth="0.12" material="color:#1c1100;emissive:#261900;emissiveIntensity:0.4"></a-box>
+      <a-text value="LEADERBOARD&#10;[Click]" position="0 1.5 0.08" align="center" color="#f59e0b" width="3.6"></a-text>
+      <a-entity light="type:point;color:#f59e0b;intensity:0.8;distance:4" position="0 2 0.5"></a-entity>
+      <a-box class="portal" position="0 1.5 0" width="3" height="2.5" depth="0.5" material="opacity:0;transparent:true" onclick="toggleLB()"></a-box>
+    </a-entity>
+    <!-- SHOP STAND -->
+    <a-entity position="-5 0 12">
+      <a-cylinder position="0 0.8 0" radius="1.5" height="0.2" material="color:#1e1b4b;roughness:0.8"></a-cylinder>
+      <a-cylinder position="0 0.4 0" radius="0.3" height="0.8" material="color:#312e81;roughness:0.9"></a-cylinder>
+      <a-entity light="type:point;color:#06b6d4;intensity:0.9;distance:4" position="0 2 0"></a-entity>
+      <a-text value="SHOP [Click]" position="0 1.9 0" align="center" color="#06b6d4" width="4"></a-text>
+      <a-box class="portal" position="0 1 0" width="3.5" height="3.5" depth="3.5" material="opacity:0;transparent:true" onclick="toggleShop()"></a-box>
+    </a-entity>
+    <!-- PET STAND -->
+    <a-entity position="5 0 12">
+      <a-cylinder position="0 0.75 0" radius="1.4" height="0.18" material="color:#451a03;roughness:0.9"></a-cylinder>
+      <a-cylinder position="0 0.3 0" radius="0.35" height="0.6" material="color:#292524;roughness:0.9"></a-cylinder>
+      <a-entity light="type:point;color:#f59e0b;intensity:0.7;distance:4" position="0 2 0"></a-entity>
+      <a-text value="PET STAND [Click]" position="0 1.8 0" align="center" color="#f59e0b" width="4"></a-text>
+      <a-box class="portal" position="0 1 0" width="3.5" height="3.5" depth="3.5" material="opacity:0;transparent:true" onclick="toggleStand()"></a-box>
+    </a-entity>
+    <!-- CONVEYOR -->
+    <a-entity position="12 0 10">
+      <a-box position="0 0.45 0" width="6.5" height="0.28" depth="1.5" material="color:#1c1917;roughness:0.7"></a-box>
+      <a-cylinder position="-3.2 0.45 0" radius="0.28" height="1.6" rotation="0 0 90" material="color:#374151;metalness:0.8"></a-cylinder>
+      <a-cylinder position="3.2 0.45 0" radius="0.28" height="1.6" rotation="0 0 90" material="color:#374151;metalness:0.8"></a-cylinder>
+      <a-cylinder position="3.6 0.3 0" radius="0.48" height="0.75" material="color:#000;emissive:#001100;emissiveIntensity:0.5"></a-cylinder>
+      <a-text value="CONVEYOR - Catch eggs!" position="0 1.7 0" align="center" color="#10b981" width="5"></a-text>
+      <a-sphere id="belt-egg" class="mine" position="-3.2 0.88 0" radius="0.24" material="color:#fef3c7;emissive:#78350f;emissiveIntensity:0.5" onclick="catchEgg()" visible="false"></a-sphere>
+    </a-entity>
+    <!-- OWNER/DEV DOG BED -->
+    <a-entity id="dog-bed" position="-14 0 6">
+      <a-box position="0 0.2 0" width="3" height="0.4" depth="2.2" material="color:#7c3aed;roughness:0.6"></a-box>
+      <a-box position="0 0.55 -0.9" width="3" height="0.7" depth="0.4" material="color:#6d28d9;roughness:0.6"></a-box>
+      <a-sphere position="0 0.65 -0.85" radius="0.35" material="color:#ddd6fe;roughness:0.5"></a-sphere>
+      <a-entity light="type:point;color:#a78bfa;intensity:0.6;distance:3" position="0 1.5 0"></a-entity>
+      <a-text value="OWNER/DEV BED&#10;[Staff Only]" position="0 1.8 0" align="center" color="#a78bfa" width="4"></a-text>
+      <a-box class="portal" position="0 0.6 0" width="3.5" height="2" depth="2.8" material="opacity:0;transparent:true" onclick="openBed()"></a-box>
+    </a-entity>
+    <!-- TRADE ZONE -->
+    <a-entity position="-14 0 -4">
+      <a-cylinder position="-1.5 0.05 0" radius="1.2" height="0.12" material="color:#064e3b;roughness:0.7"></a-cylinder>
+      <a-cylinder position="1.5 0.05 0" radius="1.2" height="0.12" material="color:#1e1b4b;roughness:0.7"></a-cylinder>
+      <a-box position="0 0.05 0" width="1" height="0.12" depth="0.5" material="color:#1f2937;roughness:0.7"></a-box>
+      <a-entity light="type:point;color:#10b981;intensity:0.7;distance:4" position="-1.5 2 0"></a-entity>
+      <a-entity light="type:point;color:#7c3aed;intensity:0.7;distance:4" position="1.5 2 0"></a-entity>
+      <a-text value="TRADE ZONE [Click]" position="0 2 0" align="center" color="#10b981" width="4"></a-text>
+      <a-box class="portal" position="0 1 0" width="5" height="3" depth="2" material="opacity:0;transparent:true" onclick="toggleTrade()"></a-box>
+    </a-entity>
+    <!-- QUEST BOARD -->
+    <a-entity position="0 0 15">
+      <a-box position="0 1.5 0" width="3.5" height="2.8" depth="0.15" material="color:#0c1a0c;emissive:#0f2a0f;emissiveIntensity:0.3"></a-box>
+      <a-cylinder position="-1.7 0.5 0" radius="0.12" height="1" material="color:#1a0a00;roughness:0.9"></a-cylinder>
+      <a-cylinder position="1.7 0.5 0" radius="0.12" height="1" material="color:#1a0a00;roughness:0.9"></a-cylinder>
+      <a-entity light="type:point;color:#10b981;intensity:0.7;distance:5" position="0 2.5 1"></a-entity>
+      <a-text value="QUEST BOARD&#10;[Click for Quests]" position="0 1.5 0.1" align="center" color="#10b981" width="4"></a-text>
+      <a-box class="portal" position="0 1.5 0" width="4" height="3.5" depth="0.6" material="opacity:0;transparent:true" onclick="toggleQuests()"></a-box>
+    </a-entity>
+    <!-- Portals to worlds ring -->
+    <a-entity id="portal-ring"></a-entity>
+    <!-- Floating crystal decor -->
+    <a-cone position="4 6 -10" radius-bottom="0.2" radius-top="0.03" height="1.5" material="color:#a78bfa;emissive:#4c1d95;emissiveIntensity:1.2;transparent:true;opacity:0.88" animation="property:position;to:4 9 -10;dur:2800;loop:true;dir:alternate;easing:easeInOutSine" animation__r="property:rotation;to:0 360 0;loop:true;dur:4000;easing:linear"></a-cone>
+    <a-cone position="-5 7 -8" radius-bottom="0.15" radius-top="0.02" height="1.2" material="color:#06b6d4;emissive:#0c4a6e;emissiveIntensity:1.2;transparent:true;opacity:0.88" animation="property:position;to:-5 10 -8;dur:2400;loop:true;dir:alternate;easing:easeInOutSine" animation__r="property:rotation;to:0 -360 0;loop:true;dur:3500;easing:linear"></a-cone>
+    <!-- Distant mountains -->
+    <a-cone position="70 0 -70" radius-bottom="22" radius-top="3" height="44" material="color:#1a0035;roughness:0.9"></a-cone>
+    <a-cone position="-80 0 -60" radius-bottom="20" radius-top="2" height="38" material="color:#160030;roughness:0.9"></a-cone>
+    <a-cone position="80 0 30" radius-bottom="18" radius-top="4" height="32" material="color:#1a0035;roughness:0.9"></a-cone>
   </a-entity>
 
-  <!-- UI -->
-  <a-text id="coinsText" value="Coins: 0" position="0 3 -3"></a-text>
+  <!-- WORLD CONTAINERS -->
+  <a-entity id="world-0" visible="false"></a-entity>
+  <a-entity id="world-1" visible="false"></a-entity>
+  <a-entity id="world-2" visible="false"></a-entity>
+  <a-entity id="world-3" visible="false"></a-entity>
+  <a-entity id="world-4" visible="false"></a-entity>
+  <a-entity id="world-5" visible="false"></a-entity>
+  <a-entity id="world-6" visible="false"></a-entity>
+  <a-entity id="world-7" visible="false"></a-entity>
+  <a-entity id="world-8" visible="false"></a-entity>
 
-  <!-- 📊 LEADERBOARD -->
-  <a-text id="rebirthBoard" position="-4 4 -3"></a-text>
+  <!-- TUNNEL -->
+  <a-entity id="world-tunnel" visible="false">
+    <a-cylinder position="0 5 0" radius="5.5" height="160" rotation="90 0 0" open-ended="true" material="color:#0d0020;emissive:#0d0020;emissiveIntensity:0.4;side:back"></a-cylinder>
+    <a-entity id="tunnel-lights"></a-entity>
+    <a-entity id="tunnel-portals"></a-entity>
+  </a-entity>
 
-  <a-box id="rebirthButton" position="-4 2 -3" color="purple"></a-box>
-  <a-text value="REBIRTH" position="-4 2 -2.7"></a-text>
+  <!-- CANNON TARGET WORLD SELECTOR -->
+  <a-entity id="cannon-menu-3d"></a-entity>
 
-  <!-- 📖 TUTORIAL -->
-  <a-text id="tutorialText" position="0 5 -3" color="yellow"></a-text>
-
+  <a-entity id="mp-players"></a-entity>
 </a-scene>
 
+<!-- CANNON MENU (2D overlay) -->
+<div id="cannon-menu" class="panel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(400px,94vw);z-index:820;display:none">
+  <div class="panel-title">&#x1F680; Choose Launch Destination</div>
+  <div class="panel-body">
+    <div id="cannon-world-list" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem"></div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeCannon()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// STAFF REGISTRY
+// ==========================================
+var STAFF = {
+  owners: ['rusty.gamer32','drelly','lars vr','larsvr'],
+  mods: ['lucasinopunchunchini','mattsamp']
+};
+var SESSION_ROLE = null;
+
+function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,''); }
+function getRole(n){
+  var k = norm(n);
+  if(STAFF.owners.some(function(o){return norm(o)===k;})) return 'owner';
+  if(STAFF.mods.some(function(m){return norm(m)===k;})) return 'moderator';
+  return 'player';
+}
+function rIcon(r){
+  if(r==='owner') return ' \uD83D\uDC51';
+  if(r==='moderator') return ' \uD83D\uDEE1';
+  return '';
+}
+
+// ==========================================
+// GAME STATE
+// ==========================================
+var G = {
+  username:'', role:'player',
+  coins:0, gems:0, rebirths:0, multiplier:1,
+  pets:[], stands:[null,null,null], petRate:0,
+  world:'hub', worldIdx:-1,
+  hatchQ:[], eggActive:false, eggPending:null,
+  godMode:false, flying:false,
+  currentLobby:'Public #1',
+  nameHistory:[], lbOpen:false, standOpen:false,
+  ownedPickaxes:['Wooden Pickaxe'],
+  equippedPickaxe:'Wooden Pickaxe',
+  ownedCosmetics:[],
+  questsUsed:0,
+  dailyClaimed:false, lastDailyDate:'',
+  currentCrystalHp:0, currentCrystalMaxHp:0, currentCrystalEl:null,
+  tradePetYou:null,
+  questsData:[]
+};
+
+// ==========================================
+// WORLDS (9 worlds + hub)
+// ==========================================
+var WORLDS = [
+  {id:'hub',  name:'Hub World',       sky:'#0a0010',ground:'#0d0020',fog:'#0a0010',fd:0.014,cc:['#a78bfa','#06b6d4','#f59e0b'],hp:0,   cv:0},
+  {id:'meadow',name:'Crystal Meadow', sky:'#0f3460',ground:'#0f3060',fog:'#0a1a3a',fd:0.015,cc:['#60a5fa','#a78bfa','#f9fafb'],hp:100, cv:10},
+  {id:'lava', name:'Lava Caverns',    sky:'#220000',ground:'#3b0000',fog:'#110000',fd:0.022,cc:['#ef4444','#f97316','#fbbf24'],hp:250, cv:25},
+  {id:'ice',  name:'Frozen Peaks',    sky:'#bfdbfe',ground:'#dbeafe',fog:'#bfdbfe',fd:0.018,cc:['#bae6fd','#e0f2fe','#93c5fd'],hp:500, cv:50},
+  {id:'jungle',name:'Toxic Jungle',   sky:'#052e16',ground:'#14532d',fog:'#052e16',fd:0.025,cc:['#4ade80','#86efac','#fde047'],hp:900, cv:90},
+  {id:'space',name:'Space Station',   sky:'#020617',ground:'#0f172a',fog:'#020617',fd:0.008,cc:['#e2e8f0','#818cf8','#c084fc'],hp:1500,cv:150},
+  {id:'nether',name:'Nether Abyss',   sky:'#1c0010',ground:'#2d0020',fog:'#110008',fd:0.022,cc:['#f43f5e','#a855f7','#ec4899'],hp:3000,cv:300},
+  {id:'crystal',name:'Crystal Kingdom',sky:'#0c0a3e',ground:'#1e1b4b',fog:'#050420',fd:0.012,cc:['#06b6d4','#7c3aed','#10b981','#f59e0b'],hp:8000,cv:800},
+  {id:'void', name:'Void Realm',      sky:'#000000',ground:'#050505',fog:'#000000',fd:0.006,cc:['#f43f5e','#fff','#a855f7','#06b6d4'],hp:50000,cv:5000},
+  {id:'godly',name:'Godly Dimension', sky:'#1c0a00',ground:'#2d1500',fog:'#0f0800',fd:0.005,cc:['#fbbf24','#f97316','#ef4444','#fff'],hp:1000000,cv:100000}
+];
+
+// ==========================================
+// PICKAXES
+// ==========================================
+var PICKAXES = [
+  {name:'Wooden Pickaxe',  icon:'\uD83E\uDEB5',dmg:10, speed:1.0, price:0,    currency:'coins',  desc:'Starter pickaxe. Reliable.'},
+  {name:'Stone Pickaxe',   icon:'\u26CF',       dmg:25, speed:1.1, price:150,  currency:'coins',  desc:'Mined from the earth.'},
+  {name:'Iron Pickaxe',    icon:'\uD83D\uDD29', dmg:55, speed:1.2, price:400,  currency:'coins',  desc:'Solid iron construction.'},
+  {name:'Gold Pickaxe',    icon:'\uD83C\uDF1F', dmg:90, speed:1.4, price:900,  currency:'coins',  desc:'Surprisingly effective.'},
+  {name:'Diamond Pickaxe', icon:'\uD83D\uDC8E', dmg:180,speed:1.6, price:100,  currency:'gems',   desc:'Crystal clear power.'},
+  {name:'Netherite Pick',  icon:'\uD83D\uDD25', dmg:350,speed:1.8, price:250,  currency:'gems',   desc:'Forged in the nether.'},
+  {name:'Plasma Pickaxe',  icon:'\uD83D\uDCA5', dmg:700,speed:2.0, price:500,  currency:'gems',   desc:'Plasma-infused devastation.'},
+  {name:'Galaxy Pickaxe',  icon:'\uD83C\uDF0C', dmg:1500,speed:2.5,price:1000, currency:'gems',   desc:'Harvests star energy.'},
+  {name:'God Pickaxe',     icon:'\u2728',       dmg:9999,speed:3.0,price:2500, currency:'gems',   desc:'Transcends reality itself.'},
+  {name:'Rusty\'s Pick',   icon:'\uD83D\uDC51', dmg:99999,speed:5.0,price:0,   currency:'owner',  desc:'Exclusive to Rusty.gamer32.'},
+];
+
+// ==========================================
+// EGGS / PETS (Italian Brainrot)
+// ==========================================
+var EGGS = [
+  {name:'Tralalero Tralala',  e:'\uD83D\uDC1F',r:'Common',  b:1, d:'A shark in a tuxedo. Very formal.',price:100,currency:'coins'},
+  {name:'Bombardiro Crocodilo',e:'\uD83D\uDC0A',r:'Rare',    b:4, d:'Croc with a bomber hat. Molto bravo!',price:300,currency:'coins'},
+  {name:'Tung Tung Sahur',    e:'\uD83E\uDD41',r:'Common',  b:2, d:'Drums at 3am. Molto bene!',price:100,currency:'coins'},
+  {name:'Cappuccino Assassino',e:'\u2615',       r:'Rare',    b:5, d:'The most dangerous barista.',price:350,currency:'coins'},
+  {name:'Lirilil Larila',     e:'\uD83D\uDC18',r:'Epic',    b:10,d:'An elephant on a mountain.',price:50,currency:'gems'},
+  {name:'Frigo Camelo Brr',   e:'\uD83D\uDC2A',r:'Common',  b:2, d:'A very cold camel.',price:120,currency:'coins'},
+  {name:'Glorbo Frutiger',    e:'\uD83C\uDF3A',r:'Legendary',b:25,d:'Mysterious. Ancient.',price:150,currency:'gems'},
+  {name:'Boneca Ambalabu',    e:'\uD83E\uDEAF',r:'Rare',    b:6, d:'A doll from the deep.',price:400,currency:'coins'},
+  {name:'La Vaca Saturno',    e:'\uD83D\uDC04',r:'Epic',    b:12,d:"Saturn's favorite cow. MOO.",price:80,currency:'gems'},
+  {name:'Trippi Troppi',      e:'\uD83E\uDD81',r:'Epic',    b:11,d:'A lion of mystery.',price:70,currency:'gems'},
+  {name:'Burbaloni Lulilolli',e:'\uD83D\uDC2C',r:'Legendary',b:30,d:'A legendary dolphin sage.',price:200,currency:'gems'},
+  {name:'Crocodilo Lacrimoso',e:'\uD83D\uDE22',r:'Common',  b:1, d:'Always crying. Why?',price:80,currency:'coins'},
+  {name:'Zuppa di Pesce',     e:'\uD83D\uDC21',r:'Rare',    b:7, d:'Fish soup... but alive.',price:450,currency:'coins'},
+  {name:'Ballerina Cappuccina',e:'\uD83D\uDC83',r:'Epic',   b:14,d:'Dances on espresso.',price:100,currency:'gems'},
+  {name:'Glorbo Magnifico',   e:'\u2728',        r:'Mythic', b:60,d:'THE rarest being. Truly glorious.',price:500,currency:'gems'},
+  {name:'Rusty Dog',          e:'\uD83D\uDC15',r:'OG',      b:100,d:'The legendary owner dog. Cannot be traded by regular players.',price:0,currency:'owner',ownerOnly:true},
+];
+
+var OG_BUNDLE = {name:'OG Starter Bundle',desc:'Includes Glorbo Frutiger + 500 gems + OG Pickaxe skin',price:999,currency:'gems',items:['Glorbo Frutiger','500 gems','OG Pickaxe']};
+var CRYSTAL_BUNDLE = {name:'Crystal Mega Bundle',desc:'Glorbo Magnifico + Galaxy Pickaxe + 1000 gems',price:1500,currency:'gems'};
+
+var COSMETICS = [
+  {name:'Rainbow Trail',   icon:'\uD83C\uDF08',price:100,currency:'gems',  desc:'Colorful trail behind you'},
+  {name:'Golden Aura',     icon:'\uD83D\uDCA0',price:200,currency:'gems',  desc:'Gold particles surround you'},
+  {name:'Void Cloak',      icon:'\uD83D\uDDA4',price:350,currency:'gems',  desc:'Dark energy cloak'},
+  {name:'Crystal Wings',   icon:'\uD83E\uDDE9',price:500,currency:'gems',  desc:'Crystalline wings'},
+  {name:'Owner Crown',     icon:'\uD83D\uDC51',price:0,  currency:'owner', desc:'Only for owners'},
+];
+
+var POTIONS = [
+  {name:'Speed Potion',    icon:'\uD83D\uDC99',price:200,currency:'coins',desc:'Mine 2x faster for 5 min'},
+  {name:'Power Potion',    icon:'\uD83D\uDDA4',price:350,currency:'coins',desc:'Double pickaxe damage for 3 min'},
+  {name:'Lucky Egg Potion',icon:'\uD83D\uDC9A',price:100,currency:'gems', desc:'Next egg hatch is guaranteed Rare+'},
+  {name:'Coin Surge',      icon:'\uD83D\uDCF8',price:150,currency:'gems', desc:'Triple coins for 10 min'},
+];
+
+// ==========================================
+// QUESTS
+// ==========================================
+function generateQuests(){
+  var allQ = [
+    {id:'mine10',  text:'Mine 10 crystals',       target:'mine',  req:10,  reward:5,  progress:0},
+    {id:'mine50',  text:'Mine 50 crystals',        target:'mine',  req:50,  reward:5,  progress:0},
+    {id:'catch3',  text:'Catch 3 eggs',            target:'catch', req:3,   reward:5,  progress:0},
+    {id:'hatch2',  text:'Hatch 2 pets',            target:'hatch', req:2,   reward:5,  progress:0},
+    {id:'coins500',text:'Earn 500 coins',          target:'coins', req:500, reward:5,  progress:0},
+    {id:'visit3',  text:'Visit 3 different worlds',target:'worlds',req:3,   reward:5,  progress:0},
+    {id:'cannon2', text:'Use cannon twice',        target:'cannon',req:2,   reward:5,  progress:0},
+    {id:'stand1',  text:'Place a pet on stand',    target:'stand', req:1,   reward:5,  progress:0},
+    {id:'mine100', text:'Mine 100 crystals',       target:'mine',  req:100, reward:10, progress:0},
+    {id:'gems25',  text:'Login daily (claim gems)',target:'daily', req:1,   reward:5,  progress:0},
+  ];
+  return allQ;
+}
+
+// ==========================================
+// LEADERBOARD
+// ==========================================
+var LB = [
+  {name:'Rusty.gamer32',score:9999999,gems:9999,role:'owner'},
+  {name:'drelly',       score:8888888,gems:8888,role:'owner'},
+  {name:'lars vr',      score:7777777,gems:7777,role:'owner'},
+  {name:'Lucasinopunchunchini',score:5555555,gems:5000,role:'moderator'},
+  {name:'mattsamp',     score:4444444,gems:4000,role:'moderator'},
+  {name:'CrystalPro',   score:123456, gems:500,role:'player'},
+  {name:'DiamondDigger',score:98765,  gems:340,role:'player'},
+  {name:'GemHunter',    score:77700,  gems:280,role:'player'},
+  {name:'RockStar99',   score:55500,  gems:200,role:'player'},
+  {name:'MineKing',     score:33300,  gems:150,role:'player'},
+];
+
+var ONLINE = [
+  {name:'Rusty.gamer32',role:'owner',world:'Hub'},
+  {name:'lars vr',      role:'owner',world:'Godly Dimension'},
+  {name:'Lucasinopunchunchini',role:'moderator',world:'Space Station'},
+  {name:'CrystalPro',   role:'player',world:'Lava Caverns'},
+  {name:'DiamondDigger',role:'player',world:'Frozen Peaks'},
+];
+
+// ==========================================
+// GORILLA TAG LOCOMOTION
+// ==========================================
+AFRAME.registerComponent('gorilla-loco',{
+  init:function(){
+    var self=this; this.prevL=null; this.prevR=null;
+    this.vx=0; this.vz=0; this.inVR=false;
+    this.el.sceneEl.addEventListener('enter-vr',function(){self.inVR=true;});
+    this.el.sceneEl.addEventListener('exit-vr',function(){self.inVR=false;});
+  },
+  tick:function(t,dt){
+    if(!this.inVR||dt<1) return;
+    var lh=document.getElementById('lhand'), rh=document.getElementById('rhand');
+    if(!lh||!rh) return;
+    var lp=new THREE.Vector3(), rp=new THREE.Vector3();
+    lh.object3D.getWorldPosition(lp); rh.object3D.getWorldPosition(rp);
+    if(this.prevL&&this.prevR){
+      var dly=(lp.y-this.prevL.y)/(dt*0.001);
+      var dry=(rp.y-this.prevR.y)/(dt*0.001);
+      if(dly<-0.5&&dry<-0.5){
+        var cam=document.getElementById('cam');
+        var dir=new THREE.Vector3(); cam.object3D.getWorldDirection(dir);
+        dir.y=0; dir.normalize();
+        var spd=Math.min((-dly+-dry)*0.22,9);
+        this.vx+=dir.x*spd*0.016; this.vz+=dir.z*spd*0.016;
+      }
+    }
+    var p=this.el.object3D.position;
+    // Fly mode
+    if(G.flying){
+      var cam2=document.getElementById('cam');
+      var fd=new THREE.Vector3(); cam2.object3D.getWorldDirection(fd); fd.normalize();
+      p.x+=fd.x*0.05; p.y+=fd.y*0.05; p.z+=fd.z*0.05;
+    }
+    p.x+=this.vx; p.z+=this.vz;
+    if(!G.flying&&p.y<0) p.y=0;
+    this.vx*=0.87; this.vz*=0.87;
+    this.prevL=lp.clone(); this.prevR=rp.clone();
+  }
+});
+
+// ==========================================
+// TUTORIAL + LOGIN
+// ==========================================
+document.getElementById('tut-un-in').addEventListener('input',function(){
+  var rp=document.getElementById('tut-role-prev');
+  var r=getRole(this.value);
+  if(!this.value.trim()){rp.textContent='';return;}
+  if(r==='owner') rp.innerHTML='<span style="color:#f59e0b">\u2B50 Owner account detected! Full privileges.</span>';
+  else if(r==='moderator') rp.innerHTML='<span style="color:#06b6d4">\uD83D\uDEE1 Moderator detected! Mod menu active.</span>';
+  else rp.innerHTML='<span style="color:#6b7280">Regular player</span>';
+});
+document.getElementById('gt-new-un').addEventListener('input',function(){
+  var rp=document.getElementById('gt-role-rp');
+  var r=getRole(this.value);
+  if(r==='owner') rp.innerHTML='<span style="color:#f59e0b">\u2B50 Owner</span>';
+  else if(r==='moderator') rp.innerHTML='<span style="color:#06b6d4">\uD83D\uDEE1 Mod</span>';
+  else rp.textContent='';
+});
+
+function startGame(){
+  var un=document.getElementById('tut-un-in').value.trim();
+  if(!un){notif('Please enter a username!','#ef4444');return;}
+  applyUser(un);
+  document.getElementById('tut-screen').style.display='none';
+  document.getElementById('vr-scene').style.display='block';
+  document.getElementById('hud').style.display='block';
+  document.getElementById('wdots-wrap').style.display='block';
+  document.getElementById('toolbar').style.display='flex';
+  document.getElementById('conv-ui').style.display='block';
+  document.getElementById('xhair').style.display='block';
+  document.getElementById('daily-btn').style.display='block';
+
+  if(G.role==='owner'||G.role==='moderator') document.getElementById('tb-mod').style.display='flex';
+  if(G.role==='owner'){
+    document.getElementById('mod-coins-btn').style.display='block';
+    document.getElementById('mod-gems-btn').style.display='block';
+  }
+  // Staff get unlimited gems/coins
+  if(G.role==='owner'||G.role==='moderator'){
+    G.coins=999999; G.gems=9999;
+  }
+
+  buildPortals(); buildTunnel(); buildAllWorlds(); buildWdots();
+  buildLB(); buildPubLobbies(); buildPetSlots(); buildRecentNames();
+  buildShopContent('pets'); buildCannonMenu(); buildQuestPanel();
+  detectTime(); startConveyor(); startPetEarn();
+  setInterval(updateHUD,500); setInterval(detectTime,60000); setInterval(fakeMPEvent,10000); setInterval(buildLB,6000);
+  checkDaily();
+  ONLINE.push({name:G.username,role:G.role,world:'Hub'});
+  G.questsData=generateQuests();
+  setTimeout(spawnDog,1000);
+  notif('Welcome, '+G.username+rIcon(G.role)+'!','#a78bfa');
+  if(G.role==='owner') notif('\uD83D\uDC51 Owner mode active! Unlimited gems & coins.','#f59e0b');
+  else if(G.role==='moderator') notif('\uD83D\uDEE1 Moderator active!','#06b6d4');
+}
+
+function applyUser(un){
+  G.username=un;
+  var detected=getRole(un);
+  if(SESSION_ROLE&&detected==='player') G.role=SESSION_ROLE;
+  else{ G.role=detected; if(G.role!=='player') SESSION_ROLE=G.role; }
+  if(G.nameHistory.indexOf(un)<0) G.nameHistory.unshift(un);
+  if(G.nameHistory.length>8) G.nameHistory.pop();
+  document.getElementById('hd-name').textContent=un+rIcon(G.role);
+  document.getElementById('gt-uname').textContent=un;
+  document.getElementById('gt-cur-name').textContent=un+rIcon(G.role);
+}
+
+// ==========================================
+// BUILD WORLDS
+// ==========================================
+function buildAllWorlds(){
+  for(var i=0;i<9;i++) buildWorld(i, WORLDS[i+1]);
+}
+
+function buildWorld(idx, w){
+  var c=document.getElementById('world-'+idx);
+  c.setAttribute('position','400 0 '+(idx*20));
+  c.innerHTML='';
+  var g=document.createElement('a-plane');
+  g.setAttribute('rotation','-90 0 0'); g.setAttribute('width','200'); g.setAttribute('height','200');
+  g.setAttribute('material','color:'+w.ground+';roughness:1');
+  c.appendChild(g);
+  // Crystals
+  for(var i=0;i<24;i++){
+    var x=(Math.random()-.5)*160, z=(Math.random()-.5)*160;
+    var h=1.3+Math.random()*5;
+    var col=w.cc[Math.floor(Math.random()*w.cc.length)];
+    var cr=document.createElement('a-cone');
+    cr.setAttribute('position',x+' 0 '+z);
+    cr.setAttribute('radius-bottom',(0.3+Math.random()*0.6).toFixed(2));
+    cr.setAttribute('radius-top','0.04'); cr.setAttribute('height',h.toFixed(2));
+    cr.setAttribute('class','mine');
+    cr.setAttribute('material','color:'+col+';emissive:'+col+';emissiveIntensity:0.45;transparent:true;opacity:0.88');
+    cr.setAttribute('data-world',w.id); cr.setAttribute('data-hp',w.hp); cr.setAttribute('data-val',w.cv);
+    cr.setAttribute('onclick','mineIt(this)');
+    c.appendChild(cr);
+  }
+  // Structures
+  var sc={meadow:'#1e3a5f',lava:'#3b0000',ice:'#0c2a4a',jungle:'#052e16',space:'#0f172a',nether:'#1c0010',crystal:'#0c0a3e',void:'#000',godly:'#1c0a00'};
+  for(var j=0;j<6;j++){
+    var sx=(Math.random()-.5)*100,sz=(Math.random()-.5)*100,sh=6+Math.random()*20;
+    var st=document.createElement('a-box');
+    st.setAttribute('position',sx+' '+(sh/2)+' '+sz);
+    st.setAttribute('width',(3+Math.random()*8).toFixed(1)); st.setAttribute('height',sh.toFixed(1)); st.setAttribute('depth',(3+Math.random()*8).toFixed(1));
+    st.setAttribute('material','color:'+(sc[w.id]||'#111')+';roughness:0.9');
+    c.appendChild(st);
+  }
+  // World light
+  var wl=document.createElement('a-entity');
+  wl.setAttribute('light','type:point;color:'+w.cc[0]+';intensity:1.5;distance:70'); wl.setAttribute('position','0 14 0');
+  c.appendChild(wl);
+  // TUNNEL PORTAL right next to world
+  buildWorldTunnelGate(c, w);
+  // Return portal
+  var rp=document.createElement('a-torus'); rp.setAttribute('position','0 4 -24'); rp.setAttribute('radius','2.8'); rp.setAttribute('tube','0.4');
+  rp.setAttribute('material','color:#7c3aed;emissive:#4c1d95;emissiveIntensity:1');
+  rp.setAttribute('animation','property:rotation;to:0 360 0;loop:true;dur:5500;easing:linear');
+  var rc=document.createElement('a-circle'); rc.setAttribute('class','portal');
+  rc.setAttribute('position','0 4 -23.8'); rc.setAttribute('radius','2.5'); rc.setAttribute('material','opacity:0;transparent:true'); rc.setAttribute('onclick','goHub()');
+  var rl=document.createElement('a-text'); rl.setAttribute('value','Return to Hub');
+  rl.setAttribute('position','0 8.2 -24'); rl.setAttribute('align','center'); rl.setAttribute('color','#a78bfa'); rl.setAttribute('width','5');
+  c.appendChild(rp); c.appendChild(rc); c.appendChild(rl);
+  var wn=document.createElement('a-text');
+  wn.setAttribute('value',w.name+'\nHP: '+fmtHP(w.hp)+' | '+w.cv+' coins/crystal');
+  wn.setAttribute('position','0 14 0'); wn.setAttribute('align','center'); wn.setAttribute('color',w.cc[0]); wn.setAttribute('width','9');
+  c.appendChild(wn);
+}
+
+function buildWorldTunnelGate(container, w){
+  // Small tunnel gate right at the side of each world
+  var tg=document.createElement('a-entity'); tg.setAttribute('position','20 0 0');
+  var tr=document.createElement('a-torus'); tr.setAttribute('position','0 3.5 0'); tr.setAttribute('radius','2.5'); tr.setAttribute('tube','0.35');
+  tr.setAttribute('material','color:'+w.cc[0]+';emissive:'+w.cc[0]+';emissiveIntensity:0.7');
+  tr.setAttribute('animation','property:rotation;to:0 360 0;loop:true;dur:4500;easing:linear');
+  var tf=document.createElement('a-circle'); tf.setAttribute('class','portal');
+  tf.setAttribute('position','0 3.5 0.1'); tf.setAttribute('radius','2.2');
+  tf.setAttribute('material','color:'+w.ground+';emissive:'+w.cc[0]+';emissiveIntensity:0.25;opacity:0.75;transparent:true');
+  tf.setAttribute('onclick','enterTunnel()');
+  var tl=document.createElement('a-text'); tl.setAttribute('value','TUNNEL');
+  tl.setAttribute('position','0 7 0'); tl.setAttribute('align','center'); tl.setAttribute('color',w.cc[0]); tl.setAttribute('width','4');
+  tg.appendChild(tr); tg.appendChild(tf); tg.appendChild(tl); container.appendChild(tg);
+}
+
+function fmtHP(n){
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n+'';
+}
+
+// ==========================================
+// PORTALS IN HUB
+// ==========================================
+function buildPortals(){
+  var c=document.getElementById('portal-ring'); c.innerHTML='';
+  var wl=WORLDS.filter(function(w){return w.id!=='hub';});
+  wl.forEach(function(w,i){
+    var angle=(i/wl.length)*Math.PI*2, r=21;
+    var x=Math.cos(angle)*r, z=Math.sin(angle)*r;
+    var pt=document.createElement('a-torus');
+    pt.setAttribute('position',x+' 3.5 '+z); pt.setAttribute('radius','2.2'); pt.setAttribute('tube','0.3');
+    pt.setAttribute('material','color:'+w.cc[0]+';emissive:'+w.cc[0]+';emissiveIntensity:0.55');
+    pt.setAttribute('animation','property:rotation;to:0 360 0;loop:true;dur:'+(3500+i*400)+';easing:linear');
+    var pf=document.createElement('a-circle'); pf.setAttribute('class','portal');
+    pf.setAttribute('position',x+' 3.5 '+(z+0.08)); pf.setAttribute('radius','2');
+    pf.setAttribute('material','color:'+w.cc[0]+';emissive:'+w.cc[0]+';emissiveIntensity:0.22;opacity:0.55;transparent:true');
+    pf.setAttribute('onclick','travelTo('+i+')');
+    var pg=document.createElement('a-entity');
+    pg.setAttribute('light','type:point;color:'+w.cc[0]+';intensity:0.9;distance:6'); pg.setAttribute('position',x+' 3.5 '+z);
+    var pl=document.createElement('a-text');
+    pl.setAttribute('value',w.name+'\n'+fmtHP(w.hp)+' HP'); pl.setAttribute('position',x+' 7 '+z);
+    pl.setAttribute('align','center'); pl.setAttribute('color',w.cc[0]); pl.setAttribute('width','3.8');
+    c.appendChild(pt); c.appendChild(pf); c.appendChild(pg); c.appendChild(pl);
+  });
+}
+
+// ==========================================
+// TUNNEL
+// ==========================================
+function buildTunnel(){
+  var tl=document.getElementById('tunnel-lights'); tl.innerHTML='';
+  document.getElementById('world-tunnel').setAttribute('position','0 0 -240');
+  for(var i=0;i<24;i++){
+    var angle=(i/24)*Math.PI*2, z=-60+i*5;
+    var lx=Math.cos(angle)*4.8, ly=Math.sin(angle)*4.8;
+    var tr2=document.createElement('a-torus');
+    tr2.setAttribute('position','0 4 '+z); tr2.setAttribute('radius','5.2'); tr2.setAttribute('tube','0.08');
+    var hue=Math.floor(i/24*360);
+    tr2.setAttribute('material','color:hsl('+hue+',90%,60%);emissive:hsl('+hue+',90%,25%);emissiveIntensity:1');
+    var tlt2=document.createElement('a-entity');
+    tlt2.setAttribute('light','type:point;color:hsl('+hue+',90%,60%);intensity:0.7;distance:7');
+    tlt2.setAttribute('position',lx+' '+(ly+4)+' '+z);
+    tl.appendChild(tr2); tl.appendChild(tlt2);
+  }
+  var tp2=document.getElementById('tunnel-portals'); tp2.innerHTML='';
+  var wl=WORLDS.filter(function(w){return w.id!=='hub';});
+  wl.forEach(function(w,i){
+    var z=-58+i*14, x=(i%2===0?3:-3);
+    var pe=document.createElement('a-cylinder');
+    pe.setAttribute('position',x+' 3.5 '+z); pe.setAttribute('radius','1.7'); pe.setAttribute('height','0.14');
+    pe.setAttribute('class','portal');
+    pe.setAttribute('material','color:'+w.cc[0]+';emissive:'+w.cc[0]+';emissiveIntensity:0.8');
+    pe.setAttribute('onclick','travelTo('+i+')');
+    var pl=document.createElement('a-text');
+    pl.setAttribute('value',w.name); pl.setAttribute('position',x+' 6 '+z);
+    pl.setAttribute('align','center'); pl.setAttribute('color',w.cc[0]); pl.setAttribute('width','4.5');
+    tp2.appendChild(pe); tp2.appendChild(pl);
+  });
+}
+
+// ==========================================
+// TRAVEL
+// ==========================================
+var visitedWorlds=[];
+function travelTo(idx){
+  var w=WORLDS[idx+1]; if(!w) return;
+  hideAll();
+  document.getElementById('world-'+idx).setAttribute('visible','true');
+  G.world=w.id; G.worldIdx=idx;
+  document.getElementById('dsky').setAttribute('color',w.sky);
+  document.getElementById('vr-scene').setAttribute('fog','type:exponential;color:'+w.fog+';density:'+w.fd);
+  document.getElementById('hd-world').textContent=w.name;
+  document.getElementById('rig').setAttribute('position','400 0 '+(idx*20));
+  updateWdots();
+  if(visitedWorlds.indexOf(w.id)<0){ visitedWorlds.push(w.id); updateQuestProg('worlds',1); }
+  ONLINE.forEach(function(p){if(p.name===G.username)p.world=w.name;});
+  notif(w.name+' - Crystal HP: '+fmtHP(w.hp)+' | '+w.cv+' coins',w.cc[0]);
+}
+function goHub(){
+  hideAll();
+  document.getElementById('world-hub').setAttribute('visible','true');
+  G.world='hub'; G.worldIdx=-1;
+  document.getElementById('hd-world').textContent='Hub World';
+  document.getElementById('rig').setAttribute('position','0 0 0');
+  detectTime(); updateWdots();
+  ONLINE.forEach(function(p){if(p.name===G.username)p.world='Hub';});
+  notif('Returned to Hub World!','#a78bfa');
+}
+function enterTunnel(){
+  hideAll();
+  document.getElementById('world-tunnel').setAttribute('visible','true');
+  G.world='tunnel';
+  document.getElementById('dsky').setAttribute('color','#000008');
+  document.getElementById('rig').setAttribute('position','0 0 -240');
+  notif('World Tunnel! Walk forward to choose a world.','#7c3aed');
+}
+function hideAll(){
+  document.getElementById('world-hub').setAttribute('visible','false');
+  document.getElementById('world-tunnel').setAttribute('visible','false');
+  for(var i=0;i<9;i++) document.getElementById('world-'+i).setAttribute('visible','false');
+}
+function switchW(d){
+  if(G.worldIdx===-1){travelTo(0);return;}
+  travelTo(Math.max(0,Math.min(8,G.worldIdx+d)));
+}
+
+// ==========================================
+// CANNON
+// ==========================================
+function openCannonMenu(){
+  closeAllPanels();
+  document.getElementById('cannon-menu').style.display='block';
+  document.getElementById('overlay-bg').style.display='block';
+}
+function closeCannon(){
+  document.getElementById('cannon-menu').style.display='none';
+  document.getElementById('overlay-bg').style.display='none';
+}
+function buildCannonMenu(){
+  var c=document.getElementById('cannon-world-list'); c.innerHTML='';
+  WORLDS.filter(function(w){return w.id!=='hub';}).forEach(function(w,i){
+    var b=document.createElement('button');
+    b.className='btn btn-ghost'; b.style.justifyContent='flex-start'; b.style.gap='.4rem'; b.style.fontSize='.78rem';
+    b.innerHTML='<span style="color:'+w.cc[0]+'">&#x1F30D;</span> '+w.name;
+    b.onclick=(function(idx){return function(){cannonLaunch(idx);};})(i);
+    c.appendChild(b);
+  });
+}
+function cannonLaunch(idx){
+  closeCannon();
+  notif('\uD83D\uDE80 CANNON FIRED \u2192 '+WORLDS[idx+1].name,'#f97316');
+  document.getElementById('rig').setAttribute('animation','property:position;to:14 28 -2;dur:500;easing:easeOutQuad');
+  setTimeout(function(){travelTo(idx);},560);
+  updateQuestProg('cannon',1);
+}
+
+// ==========================================
+// MINING WITH HP
+// ==========================================
+var pickaxeDmgBoost=1, pickaxeSpeedBoost=1;
+function getPickaxe(){ return PICKAXES.find(function(p){return p.name===G.equippedPickaxe;})||PICKAXES[0]; }
+function mineIt(el){
+  var hp=parseInt(el.getAttribute('data-hp'))||100;
+  var val=parseInt(el.getAttribute('data-val'))||10;
+  var wid=el.getAttribute('data-world')||'meadow';
+  var pk=getPickaxe();
+  var dmg=Math.floor(pk.dmg*pickaxeDmgBoost);
+  // Show HP
+  if(G.currentCrystalEl!==el){
+    G.currentCrystalHp=hp; G.currentCrystalMaxHp=hp; G.currentCrystalEl=el;
+  }
+  G.currentCrystalHp=Math.max(0, G.currentCrystalHp-dmg);
+  document.getElementById('crystal-hp-wrap').style.display='block';
+  var pct=G.currentCrystalHp/G.currentCrystalMaxHp*100;
+  document.getElementById('crystal-hp-fill').style.width=pct+'%';
+  document.getElementById('crystal-hp-txt').textContent='Crystal HP: '+fmtHP(G.currentCrystalHp)+'/'+fmtHP(G.currentCrystalMaxHp)+' ('+pk.name+' -'+fmtHP(dmg)+')';
+  if(G.currentCrystalHp<=0){
+    // Crystal destroyed
+    var earned=val*G.multiplier;
+    G.coins+=earned;
+    el.setAttribute('animation','property:scale;to:0 0 0;dur:400;easing:easeInQuad');
+    setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);setTimeout(function(){respawnCrystal(wid);},10000);},400);
+    document.getElementById('crystal-hp-wrap').style.display='none';
+    G.currentCrystalEl=null;
+    notif('+'+fmt(earned)+' coins!','#a78bfa');
+    updateQuestProg('mine',1);
+    updateQuestProg('coins',earned);
+    updateLBEntry();
+  }
+}
+function respawnCrystal(wid){
+  var widx=WORLDS.findIndex(function(w){return w.id===wid;})-1; if(widx<0)return;
+  var c=document.getElementById('world-'+widx); if(!c)return;
+  var w=WORLDS[widx+1];
+  var x=(Math.random()-.5)*160, z=(Math.random()-.5)*160;
+  var h=1.3+Math.random()*4, col=w.cc[Math.floor(Math.random()*w.cc.length)];
+  var cr=document.createElement('a-cone');
+  cr.setAttribute('position',x+' 0 '+z); cr.setAttribute('radius-bottom',(0.28+Math.random()*0.55).toFixed(2));
+  cr.setAttribute('radius-top','0.04'); cr.setAttribute('height',h.toFixed(2)); cr.setAttribute('scale','0 0 0');
+  cr.setAttribute('class','mine');
+  cr.setAttribute('material','color:'+col+';emissive:'+col+';emissiveIntensity:0.45;transparent:true;opacity:0.88');
+  cr.setAttribute('data-world',wid); cr.setAttribute('data-hp',w.hp); cr.setAttribute('data-val',w.cv);
+  cr.setAttribute('onclick','mineIt(this)');
+  cr.setAttribute('animation','property:scale;to:1 1 1;dur:650;easing:easeOutBack');
+  c.appendChild(cr);
+}
+
+// ==========================================
+// CONVEYOR / EGGS
+// ==========================================
+var convCount=8, convTO=null;
+function startConveyor(){
+  setInterval(function(){
+    convCount--;
+    var te=document.getElementById('conv-timer');
+    te.textContent='Next egg: '+convCount+'s';
+    te.style.color=convCount<=2?'#ef4444':'#10b981';
+    if(convCount<=0){spawnEgg();convCount=8+Math.floor(Math.random()*7);}
+  },1000);
+}
+function spawnEgg(){
+  if(G.eggActive)return;
+  G.eggActive=true;
+  var egg=EGGS[Math.floor(Math.random()*EGGS.length)];
+  G.eggPending=egg;
+  var el=document.getElementById('belt-egg');
+  el.setAttribute('visible','true'); el.setAttribute('position','-3.2 0.88 0');
+  el.setAttribute('animation','property:position;to:3.6 0.88 0;dur:4000;easing:linear');
+  var box=document.getElementById('conv-box');
+  box.textContent=egg.e; box.style.transition='none'; box.style.left='-50px';
+  setTimeout(function(){box.style.transition='left 4s linear';box.style.left='158px';},50);
+  notif(egg.name+' egg! Click it!','#f59e0b');
+  if(convTO)clearTimeout(convTO);
+  convTO=setTimeout(function(){
+    if(G.eggActive&&G.eggPending){
+      notif(G.eggPending.name+' fell in the hole!','#ef4444');
+      G.eggActive=false; G.eggPending=null;
+      el.setAttribute('visible','false');
+    }
+  },4200);
+}
+function catchEgg(){
+  if(!G.eggActive||!G.eggPending)return;
+  clearTimeout(convTO);
+  var egg=G.eggPending; G.eggActive=false; G.eggPending=null;
+  document.getElementById('belt-egg').setAttribute('visible','false');
+  document.getElementById('conv-box').style.left='-50px';
+  openHatch(egg);
+  updateQuestProg('catch',1);
+}
+function openHatch(egg){G.hatchQ.push(egg);if(G.hatchQ.length===1)showHatch();}
+function showHatch(){
+  if(!G.hatchQ.length)return;
+  var e=G.hatchQ[0];
+  document.getElementById('hatch-modal').style.display='block';
+  document.getElementById('overlay-bg').style.display='block';
+  var icon=document.getElementById('hegg');
+  icon.textContent='\uD83D\uDC5A'; icon.style.animation='efloat 1.4s ease-in-out infinite';
+  document.getElementById('hpname').textContent=e.name;
+  document.getElementById('hpdesc').textContent='('+e.r+') '+e.d;
+}
+function confirmHatch(){
+  var e=G.hatchQ.shift();
+  var icon=document.getElementById('hegg');
+  icon.style.animation='ehatch 0.9s ease forwards';
+  setTimeout(function(){
+    document.getElementById('hatch-modal').style.display='none';
+    document.getElementById('overlay-bg').style.display='none';
+    icon.style.animation='';
+    G.pets.push(e); G.coins+=50*G.multiplier;
+    updateHUD(); buildPetSlots();
+    notif('Hatched: '+e.e+' '+e.name+'! +50 coins!','#c084fc');
+    updateQuestProg('hatch',1);
+    if(G.hatchQ.length>0) setTimeout(showHatch,500);
+  },900);
+}
+
+// ==========================================
+// PET STAND
+// ==========================================
+function toggleStand(){
+  G.standOpen=!G.standOpen;
+  document.getElementById('stand-ui').style.display=G.standOpen?'block':'none';
+}
+function buildPetSlots(){
+  var c=document.getElementById('pet-slots'); c.innerHTML='';
+  for(var i=0;i<3;i++){
+    var d=document.createElement('div'); d.className='pslot'+(G.stands[i]?' occ':'');
+    d.textContent=G.stands[i]?G.stands[i].e:'+'; d.title=G.stands[i]?G.stands[i].name:'Empty';
+    (function(idx){d.onclick=function(){toggleSlot(idx);};})(i);
+    c.appendChild(d);
+  }
+  calcPetRate();
+}
+function toggleSlot(i){
+  if(G.stands[i]){G.stands[i]=null;notif('Pet removed','#f59e0b');}
+  else{
+    var up=G.pets.find(function(p){return G.stands.indexOf(p)<0;});
+    if(up){G.stands[i]=up;notif(up.e+' '+up.name+' on stand!','#f59e0b');updateQuestProg('stand',1);}
+    else notif('Catch eggs to get pets!','#ef4444');
+  }
+  buildPetSlots();
+}
+function calcPetRate(){
+  var r=0; G.stands.forEach(function(p){if(p)r+=p.b*G.multiplier;});
+  G.petRate=r; document.getElementById('prate').textContent='+'+r+' coins/sec';
+}
+function startPetEarn(){setInterval(function(){if(G.petRate>0){G.coins+=G.petRate;updateHUD();}},1000);}
+
+// ==========================================
+// LEADERBOARD & REBIRTH
+// ==========================================
+function toggleLB(){G.lbOpen=!G.lbOpen;document.getElementById('lb-panel').style.display=G.lbOpen?'block':'none';}
+function updateLBEntry(){
+  LB=LB.filter(function(e){return norm(e.name)!==norm(G.username);});
+  LB.push({name:G.username+rIcon(G.role),score:G.coins,gems:G.gems,role:G.role});
+  LB.sort(function(a,b){return b.score-a.score;});
+}
+function buildLB(){
+  var c=document.getElementById('lb-rows'); c.innerHTML='';
+  LB.slice(0,10).forEach(function(e,i){
+    var d=document.createElement('div'); d.className='lbe';
+    var m=i===0?'\uD83E\uDD47':i===1?'\uD83E\uDD48':i===2?'\uD83E\uDD49':(i+1)+'.';
+    d.innerHTML='<span class="rk">'+m+'</span><span class="ln">'+e.name+'</span><span class="lc">'+fmt(e.score)+'</span><span class="lg" style="margin-left:.3rem">\uD83D\uDC8E'+fmt(e.gems||0)+'</span>';
+    c.appendChild(d);
+  });
+}
+function doRebirth(){
+  if(G.coins<10000){notif('Need 10,000 coins! Have '+fmt(G.coins),'#ef4444');return;}
+  G.coins=0; G.rebirths++; G.multiplier=Math.pow(2,G.rebirths);
+  updateHUD(); buildLB(); buildPetSlots();
+  var fl=document.getElementById('rb-flash'); fl.style.opacity='1'; setTimeout(function(){fl.style.opacity='0';},900);
+  document.getElementById('rb-info').textContent='Rebirth '+G.rebirths+'! Now '+G.multiplier+'x coins!';
+  notif('\uD83D\uDD04 REBIRTH #'+G.rebirths+'! '+G.multiplier+'x coins!','#f59e0b');
+}
+
+// ==========================================
+// SHOP
+// ==========================================
+var shopCurrentTab='pets';
+function toggleShop(){
+  var el=document.getElementById('shop-panel');
+  var visible=el.style.display==='block';
+  if(visible){closeShop();return;}
+  closeAllPanels();
+  el.style.display='block';
+  document.getElementById('overlay-bg').style.display='block';
+  document.getElementById('shop-gems').textContent=fmt(G.gems);
+  document.getElementById('shop-coins').textContent=fmt(G.coins);
+  buildShopContent(shopCurrentTab);
+}
+function closeShop(){document.getElementById('shop-panel').style.display='none';document.getElementById('overlay-bg').style.display='none';}
+function shopTab(tab,btn){
+  shopCurrentTab=tab;
+  document.querySelectorAll('.shop-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  buildShopContent(tab);
+  document.getElementById('shop-gems').textContent=fmt(G.gems);
+  document.getElementById('shop-coins').textContent=fmt(G.coins);
+}
+function rarityColor(r){
+  var m={Common:'#9ca3af',Rare:'#60a5fa',Epic:'#a78bfa',Legendary:'#f59e0b',Mythic:'#f43f5e',OG:'#fb923c',owner:'#ffd700'};
+  return m[r]||'#9ca3af';
+}
+function buildShopContent(tab){
+  var c=document.getElementById('shop-content'); c.innerHTML='';
+  if(tab==='pets'){
+    EGGS.forEach(function(e){
+      if(e.ownerOnly&&G.role!=='owner') return;
+      var d=document.createElement('div'); d.className='shop-item';
+      var canBuy=e.currency==='owner'?G.role==='owner':(e.currency==='gems'?G.gems>=e.price:G.coins>=e.price);
+      d.innerHTML='<span class="si-icon">'+e.e+'</span><div class="si-name">'+e.name+'</div><div class="si-rarity r-'+e.r.toLowerCase()+'" style="color:'+rarityColor(e.r)+'">'+e.r+'</div><div class="si-price"><span>'+(e.currency==='gems'?'\uD83D\uDC8E':'$')+'</span>'+( e.currency==='owner'?'FREE (Owner)':e.price)+'</div>';
+      if(e.currency!=='owner'){
+        var b=document.createElement('button');
+        b.className='btn '+(e.currency==='gems'?'btn-gem':'btn-coin')+' btn'; b.style.width='100%'; b.style.fontSize='.72rem';
+        b.textContent='Buy'; if(!canBuy)b.disabled=true;
+        b.onclick=(function(egg){return function(){buyEgg(egg);};})(e);
+        d.appendChild(b);
+      } else {
+        if(G.role==='owner'){var ob=document.createElement('button');ob.className='btn btn-primary';ob.style.width='100%';ob.style.fontSize='.72rem';ob.textContent='Claim';ob.onclick=(function(egg){return function(){claimOwnerPet(egg);};})(e);d.appendChild(ob);}
+        else{var ob2=document.createElement('div');ob2.style.fontSize='.7rem';ob2.style.color='#6b7280';ob2.textContent='Owner Only';d.appendChild(ob2);}
+      }
+      c.appendChild(d);
+    });
+  } else if(tab==='pickaxes'){
+    PICKAXES.forEach(function(pk){
+      if(pk.currency==='owner'&&G.role!=='owner') return;
+      var owned=G.ownedPickaxes.indexOf(pk.name)>=0;
+      var equipped=G.equippedPickaxe===pk.name;
+      var d=document.createElement('div'); d.className='pickaxe-item'+(owned?' owned':'');
+      d.innerHTML='<div style="font-size:2rem;margin-bottom:.35rem">'+pk.icon+'</div><div style="font-size:.78rem;font-weight:700;color:#e2d9f3;margin-bottom:.15rem">'+pk.name+'</div><div style="font-size:.68rem;color:#06b6d4;margin-bottom:.2rem">DMG: '+pk.dmg+' | Speed: '+pk.speed+'x</div><div style="font-size:.68rem;color:var(--dim);margin-bottom:.45rem">'+pk.desc+'</div>';
+      if(equipped){var eb=document.createElement('div');eb.style.fontSize='.7rem';eb.style.color='#10b981';eb.style.fontWeight='700';eb.textContent='\u2705 Equipped';d.appendChild(eb);}
+      else if(owned){var eqb=document.createElement('button');eqb.className='btn btn-green';eqb.style.width='100%';eqb.style.fontSize='.72rem';eqb.textContent='Equip';eqb.onclick=(function(name){return function(){equipPickaxe(name);};})(pk.name);d.appendChild(eqb);}
+      else if(pk.currency==='owner'){if(G.role==='owner'){var ob3=document.createElement('button');ob3.className='btn btn-primary';ob3.style.width='100%';ob3.style.fontSize='.72rem';ob3.textContent='Claim';ob3.onclick=(function(name){return function(){claimOwnerPickaxe(name);};})(pk.name);d.appendChild(ob3);}else{var od=document.createElement('div');od.style.fontSize='.7rem';od.style.color='#6b7280';od.textContent='Owner Only';d.appendChild(od);}}
+      else{
+        var canAfford=pk.currency==='gems'?G.gems>=pk.price:G.coins>=pk.price;
+        var bb=document.createElement('button');
+        bb.className='btn '+(pk.currency==='gems'?'btn-gem':'btn-coin'); bb.style.width='100%'; bb.style.fontSize='.72rem';
+        bb.innerHTML=(pk.currency==='gems'?'\uD83D\uDC8E ':'\uD83D\uDCB0 ')+pk.price;
+        if(!canAfford)bb.disabled=true;
+        bb.onclick=(function(p){return function(){buyPickaxe(p);};})(pk);
+        d.appendChild(bb);
+      }
+      c.appendChild(d);
+    });
+  } else if(tab==='eggs'){
+    // Egg shop - buy eggs directly
+    EGGS.forEach(function(e){
+      if(e.ownerOnly) return;
+      var d=document.createElement('div'); d.className='shop-item';
+      var canBuy=e.currency==='gems'?G.gems>=e.price:G.coins>=e.price;
+      d.innerHTML='<span class="si-icon">\uD83D\uDC5A</span><div class="si-name">'+e.name+' Egg</div><div class="si-rarity" style="color:'+rarityColor(e.r)+'">'+e.r+'</div><div class="si-price"><span>'+(e.currency==='gems'?'\uD83D\uDC8E':'$')+'</span>'+e.price+'</div>';
+      var b=document.createElement('button'); b.className='btn '+(e.currency==='gems'?'btn-gem':'btn-coin'); b.style.width='100%'; b.style.fontSize='.72rem'; b.textContent='Buy Egg'; if(!canBuy)b.disabled=true;
+      b.onclick=(function(egg){return function(){buyEgg(egg,true);};})(e); d.appendChild(b); c.appendChild(d);
+    });
+  } else if(tab==='cosmetics'){
+    COSMETICS.forEach(function(cos){
+      if(cos.currency==='owner'&&G.role!=='owner') return;
+      var owned=G.ownedCosmetics.indexOf(cos.name)>=0;
+      var d=document.createElement('div'); d.className='shop-item';
+      d.innerHTML='<span class="si-icon">'+cos.icon+'</span><div class="si-name">'+cos.name+'</div><div class="si-price"><span>'+(cos.currency==='gems'?'\uD83D\uDC8E':'')+'</span>'+(cos.currency==='owner'?'Owner Only':cos.price)+'</div><div style="font-size:.68rem;color:var(--dim)">'+cos.desc+'</div>';
+      if(owned){var ed=document.createElement('div');ed.style.fontSize='.7rem';ed.style.color='#10b981';ed.style.marginTop='.4rem';ed.textContent='\u2705 Owned';d.appendChild(ed);}
+      else if(cos.currency!=='owner'){var cb=document.createElement('button');cb.className='btn btn-gem';cb.style.width='100%';cb.style.marginTop='.4rem';cb.style.fontSize='.72rem';cb.textContent='Buy';cb.disabled=G.gems<cos.price;cb.onclick=(function(item){return function(){buyCosm(item);};})(cos);d.appendChild(cb);}
+      c.appendChild(d);
+    });
+  } else if(tab==='bundles'){
+    var bundles=[OG_BUNDLE,CRYSTAL_BUNDLE];
+    bundles.forEach(function(b){
+      var d=document.createElement('div'); d.className='shop-item'; d.style.gridColumn='span 2';
+      d.innerHTML='<span class="si-icon">\uD83D\uDCE6</span><div class="si-name">'+b.name+'</div><div style="font-size:.72rem;color:var(--dim);margin-bottom:.4rem">'+b.desc+'</div><div class="si-price"><span>\uD83D\uDC8E</span>'+b.price+'</div>';
+      var bb2=document.createElement('button'); bb2.className='btn btn-gem'; bb2.style.width='100%'; bb2.style.fontSize='.72rem'; bb2.textContent='Buy Bundle'; bb2.disabled=G.gems<b.price;
+      bb2.onclick=(function(bundle){return function(){buyBundle(bundle);};})(b); d.appendChild(bb2); c.appendChild(d);
+    });
+  } else if(tab==='potions'){
+    POTIONS.forEach(function(pot){
+      var d=document.createElement('div'); d.className='shop-item';
+      var canBuy=pot.currency==='gems'?G.gems>=pot.price:G.coins>=pot.price;
+      d.innerHTML='<span class="si-icon">'+pot.icon+'</span><div class="si-name">'+pot.name+'</div><div style="font-size:.68rem;color:var(--dim);margin-bottom:.4rem">'+pot.desc+'</div><div class="si-price"><span>'+(pot.currency==='gems'?'\uD83D\uDC8E':'$')+'</span>'+pot.price+'</div>';
+      var pb=document.createElement('button'); pb.className='btn '+(pot.currency==='gems'?'btn-gem':'btn-coin'); pb.style.width='100%'; pb.style.fontSize='.72rem'; pb.textContent='Buy'; pb.disabled=!canBuy;
+      pb.onclick=(function(p){return function(){buyPotion(p);};})(pot); d.appendChild(pb); c.appendChild(d);
+    });
+  }
+}
+
+function buyEgg(egg, directHatch){
+  if(egg.currency==='gems'){if(G.gems<egg.price){notif('Need '+egg.price+' gems!','#ef4444');return;}G.gems-=egg.price;}
+  else{if(G.coins<egg.price){notif('Need '+egg.price+' coins!','#ef4444');return;}G.coins-=egg.price;}
+  updateHUD();
+  if(directHatch) openHatch(egg);
+  else{G.pets.push(egg);buildPetSlots();notif('Got: '+egg.e+' '+egg.name+'!','#c084fc');}
+  closeShop();
+}
+function claimOwnerPet(egg){
+  G.pets.push(egg); buildPetSlots(); notif('\uD83D\uDC51 Claimed: '+egg.e+' '+egg.name+'!','#f59e0b'); closeShop();
+}
+function buyPickaxe(pk){
+  if(pk.currency==='gems'){if(G.gems<pk.price){notif('Need '+pk.price+' gems!','#ef4444');return;}G.gems-=pk.price;}
+  else{if(G.coins<pk.price){notif('Need '+pk.price+' coins!','#ef4444');return;}G.coins-=pk.price;}
+  G.ownedPickaxes.push(pk.name); equipPickaxe(pk.name); updateHUD(); closeShop();
+}
+function equipPickaxe(name){G.equippedPickaxe=name;notif('\u26CF Equipped: '+name,'#06b6d4');buildShopContent('pickaxes');}
+function claimOwnerPickaxe(name){G.ownedPickaxes.push(name);equipPickaxe(name);closeShop();}
+function buyCosm(item){if(G.gems<item.price){notif('Need '+item.price+' gems!','#ef4444');return;}G.gems-=item.price;G.ownedCosmetics.push(item.name);notif('Got: '+item.icon+' '+item.name+'!','#a78bfa');updateHUD();buildShopContent('cosmetics');}
+function buyBundle(b){if(G.gems<b.price){notif('Need '+b.price+' gems!','#ef4444');return;}G.gems-=b.price;notif('\uD83D\uDCE6 Bundle claimed!','#f59e0b');updateHUD();closeShop();}
+function buyPotion(pot){
+  if(pot.currency==='gems'){if(G.gems<pot.price){notif('Need '+pot.price+' gems!','#ef4444');return;}G.gems-=pot.price;}
+  else{if(G.coins<pot.price){notif('Need '+pot.price+' coins!','#ef4444');return;}G.coins-=pot.price;}
+  applyPotion(pot); updateHUD(); closeShop();
+}
+function applyPotion(pot){
+  if(pot.name==='Speed Potion'){pickaxeSpeedBoost=2;setTimeout(function(){pickaxeSpeedBoost=1;},300000);notif('\uD83D\uDC99 Speed Potion: 2x mining speed for 5 min!','#06b6d4');}
+  else if(pot.name==='Power Potion'){pickaxeDmgBoost=2;setTimeout(function(){pickaxeDmgBoost=1;},180000);notif('\uD83D\uDDA4 Power Potion: 2x damage for 3 min!','#7c3aed');}
+  else if(pot.name==='Coin Surge'){G.multiplier*=3;setTimeout(function(){G.multiplier=Math.pow(2,G.rebirths)||1;},600000);notif('\uD83D\uDCF8 Coin Surge: 3x coins for 10 min!','#f59e0b');}
+  else notif(pot.icon+' '+pot.name+' applied!','#a78bfa');
+}
+
+// ==========================================
+// DAILY GEM
+// ==========================================
+function checkDaily(){
+  var today=new Date().toDateString();
+  if(G.lastDailyDate===today){
+    document.getElementById('daily-collect-btn').textContent='\uD83D\uDC8E Already collected today!';
+    document.getElementById('daily-collect-btn').disabled=true;
+  }
+}
+function claimDaily(){
+  var today=new Date().toDateString();
+  if(G.lastDailyDate===today){notif('Already claimed today!','#ef4444');return;}
+  G.gems+=25; G.lastDailyDate=today;
+  document.getElementById('daily-collect-btn').textContent='\uD83D\uDC8E Already collected today!';
+  document.getElementById('daily-collect-btn').disabled=true;
+  updateHUD(); notif('\uD83D\uDC8E +25 Daily Gems! Come back tomorrow!','#f59e0b');
+  updateQuestProg('daily',1);
+}
+
+// ==========================================
+// QUESTS
+// ==========================================
+var questPanelOpen=false;
+function toggleQuests(){
+  questPanelOpen=!questPanelOpen;
+  document.getElementById('quest-panel').style.display=questPanelOpen?'block':'none';
+  if(questPanelOpen){document.getElementById('overlay-bg').style.display='block';buildQuestPanel();}
+  else document.getElementById('overlay-bg').style.display='none';
+}
+function closeQuests(){questPanelOpen=false;document.getElementById('quest-panel').style.display='none';document.getElementById('overlay-bg').style.display='none';}
+function buildQuestPanel(){
+  if(!G.questsData||!G.questsData.length) G.questsData=generateQuests();
+  var c=document.getElementById('quest-list'); c.innerHTML='';
+  var limit=G.role==='player'?10:999;
+  var badge=document.getElementById('quest-count-badge');
+  badge.textContent=G.role==='player'?(G.questsUsed+'/10 quests used'):'Unlimited quests';
+  G.questsData.forEach(function(q){
+    var done=q.progress>=q.req;
+    var d=document.createElement('div'); d.className='qitem'; if(done)d.style.opacity='0.55';
+    var pct=Math.min(100,Math.floor(q.progress/q.req*100));
+    d.innerHTML='<div class="qt">'+(done?'\u2705':'\uD83D\uDFE1')+' '+q.text+(done?' <span style="color:#10b981">(Done!)</span>':'')+'</div><div class="qd">Progress: '+q.progress+' / '+q.req+'</div><div class="qprog"><div class="qprog-fill" style="width:'+pct+'%"></div></div><div class="qrew">\uD83D\uDC8E +'+q.reward+' gems on completion</div>';
+    if(done&&!q.claimed){
+      var cb3=document.createElement('button'); cb3.className='btn btn-gem'; cb3.style.marginTop='.4rem'; cb3.style.fontSize='.72rem'; cb3.textContent='Claim +'+q.reward+' Gems';
+      cb3.onclick=(function(quest){return function(){claimQuest(quest);};})(q); d.appendChild(cb3);
+    }
+    c.appendChild(d);
+  });
+}
+function claimQuest(q){
+  if(q.claimed||q.progress<q.req)return;
+  q.claimed=true; G.gems+=q.reward; updateHUD(); buildQuestPanel();
+  notif('\uD83D\uDC8E +'+q.reward+' gems for: '+q.text,'#10b981');
+}
+function updateQuestProg(type, amount){
+  if(!G.questsData)return;
+  G.questsData.forEach(function(q){
+    if(!q.claimed&&q.target===type) q.progress=Math.min(q.req,q.progress+amount);
+  });
+}
+
+// ==========================================
+// TRADE
+// ==========================================
+var tradeOpen=false;
+function toggleTrade(){
+  tradeOpen=!tradeOpen;
+  document.getElementById('trade-panel').style.display=tradeOpen?'block':'none';
+  if(tradeOpen) document.getElementById('overlay-bg').style.display='block';
+  else document.getElementById('overlay-bg').style.display='none';
+}
+function closeTrade(){tradeOpen=false;document.getElementById('trade-panel').style.display='none';document.getElementById('overlay-bg').style.display='none';}
+function pickTradePet(side){
+  if(G.pets.length===0){notif('No pets to trade!','#ef4444');return;}
+  var pet=G.pets[0];
+  if(pet.ownerOnly&&(G.role==='owner'||G.role==='moderator')){
+    // Owner/dev/mod can only give Rusty Dog to non-staff
+    var partner=document.getElementById('trade-partner').value.trim();
+    if(!partner){notif('Enter partner username first!','#ef4444');return;}
+    if(getRole(partner)!=='player'){notif('Cannot trade Rusty Dog to another staff member!','#f59e0b');return;}
+  } else if(pet.ownerOnly&&G.role==='player'){
+    notif('You cannot trade this special pet!','#ef4444');return;
+  }
+  G.tradePetYou=pet;
+  document.getElementById('trade-slot-you').textContent=pet.e;
+  document.getElementById('trade-slot-you').classList.add('filled');
+  document.getElementById('trade-you-name').textContent=pet.name;
+}
+function acceptTrade(){
+  if(!G.tradePetYou){notif('Select a pet to offer first!','#ef4444');return;}
+  var partner=document.getElementById('trade-partner').value.trim();
+  if(!partner){notif('Enter a partner username!','#ef4444');return;}
+  if(G.tradePetYou.ownerOnly){
+    if(G.role==='player'){notif('You cannot trade this owner pet!','#ef4444');return;}
+    if(getRole(partner)!=='player'){notif('Rusty Dog can only be given to regular players!','#f59e0b');return;}
+  }
+  var idx=G.pets.indexOf(G.tradePetYou);
+  if(idx>=0) G.pets.splice(idx,1);
+  G.tradePetYou=null;
+  document.getElementById('trade-slot-you').textContent='+'; document.getElementById('trade-slot-you').classList.remove('filled');
+  document.getElementById('trade-you-name').textContent='Empty';
+  document.getElementById('trade-msg').textContent='Trade sent to '+partner+'!';
+  buildPetSlots(); closeTrade();
+  notif('Trade sent to '+partner+'!','#10b981');
+}
+
+// ==========================================
+// GT COMPUTER
+// ==========================================
+function openPC(){
+  closeAllPanels();
+  document.getElementById('gt-pc').style.display='block';
+  document.getElementById('overlay-bg').style.display='block';
+  document.getElementById('gt-uname').textContent=G.username;
+  document.getElementById('gt-cur-name').textContent=G.username+rIcon(G.role);
+  buildPubLobbies(); buildRecentNames();
+}
+function closePC(){document.getElementById('gt-pc').style.display='none';document.getElementById('overlay-bg').style.display='none';}
+function gtTab(tab,btn){
+  ['lobbies','username','players'].forEach(function(t){document.getElementById('gtc-'+t).classList.remove('show');});
+  document.getElementById('gtc-'+tab).classList.add('show');
+  document.querySelectorAll('.gt-tab').forEach(function(b){b.classList.remove('act');});
+  btn.classList.add('act');
+  if(tab==='players') buildGTPlayers();
+}
+function buildPubLobbies(){
+  var list=[{n:'Crystal Meadow #1',p:Math.floor(Math.random()*8)+2,m:12},{n:'Lava Rush',p:Math.floor(Math.random()*10)+1,m:12},{n:'Mining Madness',p:11,m:12},{n:'Void Grinders',p:Math.floor(Math.random()*6)+1,m:12},{n:'Brain Rot Paradise',p:Math.floor(Math.random()*9)+2,m:12}];
+  var c=document.getElementById('gt-pub-list'); c.innerHTML='';
+  list.forEach(function(l){
+    var d=document.createElement('div'); d.className='gt-item';
+    d.innerHTML='<span class="gi-n">'+l.n+'</span><span class="gi-i">'+l.p+'/'+l.m+'</span>';
+    d.onclick=function(){G.currentLobby=l.n;closePC();notif('Joined: '+l.n,'#10b981');};
+    c.appendChild(d);
+  });
+}
+function gtCreateLobby(priv){
+  var code=priv?Math.random().toString(36).substr(2,6).toUpperCase():null;
+  G.currentLobby=priv?'Private-'+code:'My Lobby'; closePC();
+  notif(priv?'Private lobby! Code: '+code:'Public lobby created!','#06b6d4');
+}
+function gtJoinPrivate(){
+  var code=document.getElementById('gt-code-in').value.trim().toUpperCase();
+  if(!code){notif('Enter a code!','#ef4444');return;}
+  G.currentLobby='Private-'+code; closePC(); notif('Joined: '+code,'#10b981');
+}
+function gtChangeUsername(){
+  var un=document.getElementById('gt-new-un').value.trim();
+  if(!un){notif('Enter a username!','#ef4444');return;}
+  var detected=getRole(un);
+  if(SESSION_ROLE&&detected==='player'){
+    G.username=un;
+    if(G.nameHistory.indexOf(un)<0) G.nameHistory.unshift(un);
+    if(G.nameHistory.length>8) G.nameHistory.pop();
+    document.getElementById('hd-name').textContent=un+rIcon(G.role);
+    document.getElementById('gt-uname').textContent=un;
+    document.getElementById('gt-cur-name').textContent=un+rIcon(G.role);
+    notif('Username changed! Staff role kept.','#10b981');
+  } else { applyUser(un); notif('Username: '+un+rIcon(G.role),'#10b981'); }
+  if(G.role==='owner'||G.role==='moderator') document.getElementById('tb-mod').style.display='flex';
+  else document.getElementById('tb-mod').style.display='none';
+  document.getElementById('gt-new-un').value=''; buildRecentNames(); closePC();
+}
+function buildRecentNames(){
+  var c=document.getElementById('gt-recent'); c.innerHTML='';
+  G.nameHistory.forEach(function(n){
+    var d=document.createElement('div'); d.className='gt-item';
+    var r=getRole(n); var ri=r==='owner'?'\uD83D\uDC51 ':r==='moderator'?'\uD83D\uDEE1 ':'';
+    d.innerHTML='<span class="gi-n">'+ri+n+'</span><span class="gi-i">click to select</span>';
+    d.onclick=function(){document.getElementById('gt-new-un').value=n;};
+    c.appendChild(d);
+  });
+}
+function buildGTPlayers(){
+  var c=document.getElementById('gt-plist'); c.innerHTML='';
+  var found=ONLINE.find(function(p){return p.name===G.username;});
+  if(!found) ONLINE.push({name:G.username,role:G.role,world:G.world});
+  document.getElementById('gt-pcount').textContent=ONLINE.length;
+  ONLINE.forEach(function(p){
+    var d=document.createElement('div'); d.className='gt-item';
+    var ri=p.role==='owner'?'\uD83D\uDC51 ':p.role==='moderator'?'\uD83D\uDEE1 ':'\uD83D\uDC64 ';
+    d.innerHTML='<span class="gi-n">'+ri+p.name+'</span><span class="gi-i">'+p.world+'</span>';
+    c.appendChild(d);
+  });
+}
+
+// ==========================================
+// MOD MENU
+// ==========================================
+function toggleMod(){
+  if(G.role!=='owner'&&G.role!=='moderator'){notif('Staff only!','#ef4444');return;}
+  var m=document.getElementById('mod-panel'); var vis=m.style.display==='block';
+  if(vis){m.style.display='none';document.getElementById('overlay-bg').style.display='none';}
+  else{closeAllPanels();m.style.display='block';document.getElementById('overlay-bg').style.display='block';}
+}
+function toggleFly(){
+  if(G.role!=='owner'&&G.role!=='moderator'){return;}
+  G.flying=!G.flying; notif(G.flying?'\uD83D\uDEEB Fly mode ON! Look up/down to fly.':'\uD83D\uDEEC Fly mode OFF','#a78bfa');
+}
+function openModSpawnPet(){
+  var c=document.getElementById('mod-spawn-list'); c.innerHTML='';
+  EGGS.concat([{name:'All Pickaxes',e:'\u26CF',r:'Staff',d:'Unlock all pickaxes'}]).forEach(function(e){
+    var d=document.createElement('div'); d.style.cssText='padding:.4rem;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:.5rem;transition:background .2s;font-size:.8rem';
+    d.innerHTML='<span style="font-size:1.2rem">'+e.e+'</span><span style="color:#e2d9f3">'+e.name+'</span><span style="color:var(--dim);font-size:.7rem;margin-left:auto">'+e.r+'</span>';
+    d.onmouseenter=function(){this.style.background='rgba(124,58,237,.15)';};
+    d.onmouseleave=function(){this.style.background='';};
+    d.onclick=(function(egg){return function(){
+      if(egg.name==='All Pickaxes'){PICKAXES.forEach(function(p){if(G.ownedPickaxes.indexOf(p.name)<0)G.ownedPickaxes.push(p.name);});notif('All pickaxes unlocked!','#06b6d4');}
+      else{G.pets.push(egg);buildPetSlots();notif('Spawned: '+egg.e+' '+egg.name,'#a78bfa');}
+      document.getElementById('mod-spawn-panel').style.display='none';
+    };})(e);
+    c.appendChild(d);
+  });
+  document.getElementById('mod-spawn-panel').style.display='block';
+}
+function modAct(a){
+  var t=document.getElementById('mod-target').value.trim();
+  var ai=document.getElementById('ann-text');
+  if(a==='kick') notif('Kicked: '+(t||'(no target)'),'#ef4444');
+  else if(a==='ban') notif('Banned: '+(t||'(no target)'),'#ef4444');
+  else if(a==='mute') notif('Muted: '+(t||'(no target)'),'#a78bfa');
+  else if(a==='tp') notif('Teleporting to: '+(t||'(no target)'),'#06b6d4');
+  else if(a==='coins'){if(G.role==='owner'){G.coins+=999999;updateHUD();notif('+999,999 coins!','#f59e0b');}else notif('Owner only!','#ef4444');}
+  else if(a==='gems'){if(G.role==='owner'){G.gems+=9999;updateHUD();notif('+9,999 gems!','#06b6d4');}else notif('Owner only!','#ef4444');}
+  else if(a==='announce'){
+    ai.style.display=ai.style.display==='none'?'block':'none';
+    if(ai.style.display==='none'&&ai.value){notif('\uD83D\uDCE2 SERVER: '+ai.value,'#f59e0b');ai.value='';}
+  }
+}
+
+// ==========================================
+// DOG BED
+// ==========================================
+function openBed(){
+  if(G.role!=='owner'&&G.role!=='moderator'){notif('\uD83D\uDECF Staff only! This bed is for owners and devs.','#ef4444');return;}
+  closeAllPanels();
+  document.getElementById('sleep-modal').style.display='block';
+  document.getElementById('overlay-bg').style.display='block';
+}
+function doSleep(){
+  document.getElementById('sleep-modal').style.display='none';
+  document.getElementById('overlay-bg').style.display='none';
+  notif('\uD83D\uDE34 Zzz... Resting...(+500 coins for resting!)','#a78bfa');
+  G.coins+=500; updateHUD();
+}
+
+// ==========================================
+// DOG / PLAYER MODEL
+// ==========================================
+function spawnDog(){
+  var rig=document.getElementById('rig');
+  var dog=document.createElement('a-entity'); dog.id='player-dog';
+  var isStaff=G.role==='owner'||G.role==='moderator';
+  var bodyColor=G.role==='owner'?'#b8860b':G.role==='moderator'?'#1d4ed8':'#c8a870';
+  var body=document.createElement('a-box');
+  body.setAttribute('position','0 0.22 -0.8'); body.setAttribute('width','0.45'); body.setAttribute('height','0.3'); body.setAttribute('depth','0.75');
+  body.setAttribute('material','color:'+bodyColor+';roughness:0.5');
+  var head=document.createElement('a-box');
+  head.setAttribute('position','0 0.47 -0.45'); head.setAttribute('width','0.36'); head.setAttribute('height','0.36'); head.setAttribute('depth','0.36');
+  head.setAttribute('material','color:'+bodyColor+';roughness:0.5');
+  var tag=document.createElement('a-text');
+  tag.setAttribute('value',(G.role==='owner'?'\uD83D\uDC51 ':G.role==='moderator'?'\uD83D\uDEE1 ':'')+G.username);
+  tag.setAttribute('position','0 0.92 -0.58'); tag.setAttribute('align','center'); tag.setAttribute('color','#e2d9f3'); tag.setAttribute('width','2.4');
+  dog.appendChild(body); dog.appendChild(head); dog.appendChild(tag); rig.appendChild(dog);
+}
+// Allow loading custom dog model
+window.loadDogModel=function(url, devOnly){
+  if(devOnly&&G.role!=='owner'){notif('Dev only!','#ef4444');return;}
+  var rig=document.getElementById('rig');
+  var old=document.getElementById('player-dog'); if(old) old.remove();
+  var d=document.createElement('a-entity'); d.id='player-dog';
+  d.setAttribute('gltf-model','url('+url+')');
+  d.setAttribute('position','0 0 -0.8'); d.setAttribute('scale','0.5 0.5 0.5');
+  rig.appendChild(d); notif('\uD83D\uDC15 Custom dog model loaded!','#f59e0b');
+};
+
+// ==========================================
+// TIME / SKY
+// ==========================================
+function detectTime(){
+  var now=new Date(), h=now.getHours();
+  var ts=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  var sky,sunV,moonV,starV,label;
+  if(h>=5&&h<7){sky='#ff8844';sunV=true;moonV=false;starV=false;label='Dawn';setSun(20,8,-80);}
+  else if(h>=7&&h<11){sky='#3b82f6';sunV=true;moonV=false;starV=false;label='Morning';setSun(30,35,-100);}
+  else if(h>=11&&h<14){sky='#1d4ed8';sunV=true;moonV=false;starV=false;label='Noon';setSun(0,65,-100);}
+  else if(h>=14&&h<17){sky='#2563eb';sunV=true;moonV=false;starV=false;label='Afternoon';setSun(-30,45,-100);}
+  else if(h>=17&&h<20){sky='#ea580c';sunV=true;moonV=false;starV=false;label='Sunset';setSun(-55,6,-80);}
+  else if(h>=20&&h<22){sky='#1e1b4b';sunV=false;moonV=true;starV=false;label='Dusk';}
+  else{sky='#0a0010';sunV=false;moonV=true;starV=true;label='Night';}
+  document.getElementById('hd-time').textContent=label+' '+ts;
+  if(G.world==='hub'||G.world==='tunnel'){
+    document.getElementById('dsky').setAttribute('color',sky);
+    document.getElementById('sun-ball').setAttribute('visible',sunV?'true':'false');
+    document.getElementById('moon-ball').setAttribute('visible',moonV?'true':'false');
+    document.getElementById('sun-dir').setAttribute('light','type:directional;color:'+(sunV?'#fffaee':'#1e1b4b')+';intensity:'+(sunV?1.1:0.2)+';castShadow:false');
+    var sw=document.getElementById('stars-wrap'); sw.setAttribute('visible',starV?'true':'false');
+    if(starV&&sw.children.length===0) buildStars();
+  }
+}
+function setSun(x,y,z){document.getElementById('sun-ball').setAttribute('position',x+' '+y+' '+z);}
+function buildStars(){
+  var sw=document.getElementById('stars-wrap');
+  for(var i=0;i<160;i++){
+    var phi=Math.random()*Math.PI*2,theta=Math.random()*Math.PI,r=380;
+    var s=document.createElement('a-sphere');
+    s.setAttribute('position',(r*Math.sin(theta)*Math.cos(phi))+' '+(r*Math.cos(theta))+' '+(r*Math.sin(theta)*Math.sin(phi)));
+    s.setAttribute('radius',0.3+Math.random()*1.1); s.setAttribute('material','shader:flat;color:#ffffff');
+    sw.appendChild(s);
+  }
+}
+
+// ==========================================
+// WORLD DOTS
+// ==========================================
+function buildWdots(){
+  var c=document.getElementById('wdots'); c.innerHTML='';
+  ['Hub'].concat(WORLDS.filter(function(w){return w.id!=='hub';}).map(function(w){return w.name;})).forEach(function(n,i){
+    var d=document.createElement('div'); d.className='wdot'+(i===0?' active':'');
+    d.id='wd-'+i; d.title=n;
+    (function(idx){d.onclick=function(){idx===0?goHub():travelTo(idx-1);};})(i);
+    c.appendChild(d);
+  });
+}
+function updateWdots(){
+  document.querySelectorAll('.wdot').forEach(function(d){d.classList.remove('active');});
+  var idx=G.worldIdx===-1?0:G.worldIdx+1;
+  var d=document.getElementById('wd-'+idx); if(d) d.classList.add('active');
+}
+
+// ==========================================
+// HUD
+// ==========================================
+function updateHUD(){
+  document.getElementById('hd-coins').textContent=fmt(G.coins);
+  document.getElementById('hd-gems').textContent=fmt(G.gems);
+  document.getElementById('hd-mult').textContent=G.multiplier;
+  calcPetRate(); updateLBEntry();
+}
+
+// ==========================================
+// FAKE MULTIPLAYER
+// ==========================================
+function fakeMPEvent(){
+  var msgs=['CrystalPro mined a Godly crystal! +100K coins!','DiamondDigger hatched Glorbo Magnifico! [Mythic]','RockStar99 rebirthed to x8 multiplier!','GemHunter used cannon to reach Void Realm!','lars vr claimed 25 daily gems!','Lucasinopunchunchini completed 5 quests!'];
+  notif(msgs[Math.floor(Math.random()*msgs.length)],'#4b5563');
+}
+
+// ==========================================
+// UTILS
+// ==========================================
+function fmt(n){
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return Math.floor(n)+'';
+}
+function notif(msg,col){
+  var c=document.getElementById('notifs');
+  var d=document.createElement('div'); d.className='notif'; d.style.borderLeftColor=col||'#a78bfa'; d.textContent=msg; c.appendChild(d);
+  setTimeout(function(){d.style.transition='opacity .4s';d.style.opacity='0';setTimeout(function(){if(d.parentNode)d.remove();},400);},3000);
+  while(c.children.length>5) c.removeChild(c.firstChild);
+}
+function closeAllPanels(){
+  ['shop-panel','gt-pc','mod-panel','trade-panel','quest-panel','hatch-modal','sleep-modal','cannon-menu','mod-spawn-panel'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  document.getElementById('lb-panel').style.display='none';
+  document.getElementById('overlay-bg').style.display='none';
+  G.lbOpen=false; questPanelOpen=false; tradeOpen=false;
+}
+
+// ==========================================
+// KEYBOARD
+// ==========================================
+document.addEventListener('keydown',function(e){
+  var k=e.key.toLowerCase();
+  if(k==='escape') closeAllPanels();
+  if(k==='l') toggleLB();
+  if(k==='c') openPC();
+  if(k==='s') toggleShop();
+  if(k==='p') toggleStand();
+  if(k==='m') toggleMod();
+  if(k==='q') toggleQuests();
+  if(k==='f'&&(G.role==='owner'||G.role==='moderator')) toggleFly();
+  if(k==='h') goHub();
+  if(k==='t') enterTunnel();
+  if(k==='arrowleft') switchW(-1);
+  if(k==='arrowright') switchW(1);
+  if(k===' '){
+    var crystals=document.querySelectorAll('.mine');
+    if(crystals.length>0) mineIt(crystals[Math.floor(Math.random()*crystals.length)]);
+    e.preventDefault();
+  }
+});
+</script>
+<div style="position:fixed;bottom:0;left:0;background:rgba(0,0,0,.55);color:#4b5563;font-size:.62rem;padding:2px 7px;z-index:400;pointer-events:none">
+  [S] Shop &nbsp;[L] LB &nbsp;[C] PC &nbsp;[Q] Quests &nbsp;[P] Pets &nbsp;[M] Mod &nbsp;[F] Fly &nbsp;[H] Hub &nbsp;[T] Tunnel &nbsp;[Arrows] World &nbsp;[Esc] Close
+</div>
 </body>
 </html>
